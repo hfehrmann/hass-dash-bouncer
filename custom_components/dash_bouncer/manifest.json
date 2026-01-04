@@ -1,0 +1,6 @@
+{
+  "domain": "dash_bouncer",
+  "config_flow": true,
+  "name": "DashBouncer",
+  "version": "1.0"
+}
