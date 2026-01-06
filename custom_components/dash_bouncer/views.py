@@ -31,9 +31,12 @@ class DashBouncerPanelsView(HomeAssistantView):
 
         try:
             all_panels = hass.data[DATA_PANELS]
-            panels = [key for key in all_panels if key not in PERMANENT_PANELS]
+            panels = [
+                all_panels[key].to_response()
+                for key in all_panels if key not in PERMANENT_PANELS
+            ]
 
-            return self.json(sorted(panels))
+            return self.json(panels)
         except Exception as e:
             _LOGGER.exception("Error getting panels")
             return self.json({"error": str(e)}, status_code=500)
@@ -62,7 +65,7 @@ class DashBouncerUsersView(HomeAssistantView):
         try:
             _, storage, _ = hass.data[PERSON_DOMAIN]
 
-            return self.json(sorted(storage.async_items()))
+            return self.json(storage.async_items())
         except Exception as e:
             _LOGGER.exception("Error getting users")
             return self.json({"error": str(e)}, status_code=500)

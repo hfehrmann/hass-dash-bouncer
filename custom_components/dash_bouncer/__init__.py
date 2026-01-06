@@ -3,15 +3,13 @@ import logging
 
 from homeassistant.components.frontend import (
     async_register_built_in_panel,
-    async_remove_panel,
 )
 from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import SERVICE_RELOAD
-from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN as DOMAIN
-from .views import DashBouncerPanelsView
+from .views import DashBouncerPanelsView, DashBouncerUsersView
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -34,8 +32,9 @@ def _register_side_panel(hass: HomeAssistant) -> None:
         "js_url": "/api/dash_bouncer/static/bundle.js",
     }
 
-    config = {}
-    config["_panel_custom"] = custom_panel_config
+    config = {
+        "_panel_custom": custom_panel_config,
+    }
 
     async_register_built_in_panel(
         hass,
@@ -57,6 +56,7 @@ async def _async_register_api_call(hass: HomeAssistant) -> None:
     ])
 
     hass.http.register_view(DashBouncerPanelsView())
+    hass.http.register_view(DashBouncerUsersView())
 
 
 
