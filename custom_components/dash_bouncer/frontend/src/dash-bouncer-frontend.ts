@@ -11,8 +11,6 @@ import { styles } from "./hass/styles"
 
 import { Person, Panel } from "./types"
 
-import "./wired-data"
-
 @customElement("dash-bouncer-frontend")
 export class DashBouncerFrontend extends LitElement {
 
@@ -25,18 +23,11 @@ export class DashBouncerFrontend extends LitElement {
   @property({ attribute: false }) public panel!: CustomPanelInfo;
 
   private _dataTask = new Task(this, {
-    task: async ([], { signal }) => {
-
-      let people;
-      let panels;
-      try {
-        [people, panels] = await Promise.all([
-          this.hass.callApi("GET", "dash_bouncer/users"),
-          this.hass.callApi("GET", "dash_bouncer/panels"),
-        ])
-      } catch (error) {
-        throw error;
-      }
+    task: async () => {
+      const [people, panels] = await Promise.all([
+        this.hass.callApi("GET", "dash_bouncer/users"),
+        this.hass.callApi("GET", "dash_bouncer/panels"),
+      ])
 
       const result: {people: [Person], panels: [Panel]}  = {
         people,
@@ -53,7 +44,7 @@ export class DashBouncerFrontend extends LitElement {
     const uiMode = darkMode ? "dark" : "light";
     return this._dataTask.render({
       pending: () => html`<hass-loading-screen></hass-loading-screen>`,
-      complete: ({people, panels}) =>
+      complete: ({people, _panels}) =>
         html`
           <div class="main ${uiMode}">
             <div class="header">DashBouncer</div>
@@ -74,8 +65,8 @@ export class DashBouncerFrontend extends LitElement {
                       ${people.map(
                         (person) => html`
                           <ha-list-item
-                            @click=${this._openEditEntry}
-                            .entry=${person}
+                            @click=${this._openEditPerson}
+                            .person=${person}
                           >
                             ${person.name}
                           </ha-list-item>
@@ -91,8 +82,13 @@ export class DashBouncerFrontend extends LitElement {
     });
   }
 
-  private _openEditEntry(ev: MouseEvent) {
-    const entry: any = (ev.currentTarget! as any).entry;
+  private _openEditPerson(ev: MouseEvent) {
+    if (ev.currentTarget === null) {
+      return;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const person: Person = (ev.currentTarget as any).person;
+    console.log(person)
   }
 
   static styles = [

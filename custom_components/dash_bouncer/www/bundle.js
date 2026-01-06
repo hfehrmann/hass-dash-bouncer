@@ -116,67 +116,16 @@ ${darkStyles}
 }
 `;
 
-    let WiredData = class WiredData extends i$1 {
-        constructor() {
-            super(...arguments);
-            this.narrow = false;
-        }
-        render() {
-            return b `
-      <div class="wired-card">
-        <p>There are ${Object.keys(this.hass.states).length} entities.</p>
-        <p>The screen is${this.narrow ? "" : " not"} narrow.</p>
-        Configured panel config
-        <pre>${JSON.stringify(this.panel.config, undefined, 2)}</pre>
-        Current route
-        <pre>${JSON.stringify(this.route, undefined, 2)}</pre>
-      <div>
-    `;
-        }
-    };
-    WiredData.styles = i$4 `
-    .wired-card {
-      background-color: red;
-      padding: 16px;
-      display: block;
-      font-size: 20px;
-      max-width: 600px;
-      margin: 0 auto;
-    }
-  `;
-    __decorate([
-        n({ attribute: false })
-    ], WiredData.prototype, "hass", void 0);
-    __decorate([
-        n({ type: Boolean })
-    ], WiredData.prototype, "narrow", void 0);
-    __decorate([
-        n({ attribute: false })
-    ], WiredData.prototype, "route", void 0);
-    __decorate([
-        n({ attribute: false })
-    ], WiredData.prototype, "panel", void 0);
-    WiredData = __decorate([
-        t("wired-data")
-    ], WiredData);
-
     exports.DashBouncerFrontend = class DashBouncerFrontend extends i$1 {
         constructor() {
             super(...arguments);
             this.narrow = false;
             this._dataTask = new h(this, {
-                task: async ([], { signal }) => {
-                    let people;
-                    let panels;
-                    try {
-                        [people, panels] = await Promise.all([
-                            this.hass.callApi("GET", "dash_bouncer/users"),
-                            this.hass.callApi("GET", "dash_bouncer/panels"),
-                        ]);
-                    }
-                    catch (error) {
-                        throw error;
-                    }
+                task: async () => {
+                    const [people, panels] = await Promise.all([
+                        this.hass.callApi("GET", "dash_bouncer/users"),
+                        this.hass.callApi("GET", "dash_bouncer/panels"),
+                    ]);
                     const result = {
                         people,
                         panels
@@ -192,7 +141,7 @@ ${darkStyles}
             const uiMode = darkMode ? "dark" : "light";
             return this._dataTask.render({
                 pending: () => b `<hass-loading-screen></hass-loading-screen>`,
-                complete: ({ people, panels }) => b `
+                complete: ({ people, _panels }) => b `
           <div class="main ${uiMode}">
             <div class="header">DashBouncer</div>
 
@@ -211,8 +160,8 @@ ${darkStyles}
                     <ha-list>
                       ${people.map((person) => b `
                           <ha-list-item
-                            @click=${this._openEditEntry}
-                            .entry=${person}
+                            @click=${this._openEditPerson}
+                            .person=${person}
                           >
                             ${person.name}
                           </ha-list-item>
@@ -226,8 +175,13 @@ ${darkStyles}
         `
             });
         }
-        _openEditEntry(ev) {
-            ev.currentTarget.entry;
+        _openEditPerson(ev) {
+            if (ev.currentTarget === null) {
+                return;
+            }
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const person = ev.currentTarget.person;
+            console.log(person);
         }
     };
     exports.DashBouncerFrontend.styles = [
