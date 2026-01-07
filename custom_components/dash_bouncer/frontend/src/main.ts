@@ -1,1 +1,2 @@
-export { DashBouncerFrontend } from "./dash-bouncer-frontend"
+export { DashBouncerDashboard } from "./dashboard";
+export { DashBouncerDialog } from "./dialog";

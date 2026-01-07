@@ -26,7 +26,7 @@ async def async_setup_entry(
 
 def _register_side_panel(hass: HomeAssistant) -> None:
     custom_panel_config = {
-        "name": "dash-bouncer-frontend",
+        "name": "dash-bouncer-dashboard",
         "embed_iframe": False,
         "trust_external": False,
         "js_url": "/api/dash_bouncer/static/bundle.js",

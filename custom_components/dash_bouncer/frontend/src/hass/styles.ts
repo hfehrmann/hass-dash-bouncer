@@ -16,22 +16,22 @@ const lightStyles = css`
     --dashb-text-list-color: #000000;
     --dashb-body-header-color: #000000;
 
-    --dashb-primary-background: #FFFFFF;
-    --dashb-header-background: #AAFF33;
-    --dashb-list-background: #AAAAAA;
+    --dashb-primary-background: #ffffff;
+    --dashb-header-background: #aaff33;
+    --dashb-list-background: #aaaaaa;
   }
 `;
 
 const darkStyles = css`
   :host > div.main.dark {
-    --dashb-text-color: #E1E1E1;
-    --dashb-text-header-color: #E1E1E1;
-    --dashb-text-list-color: #E1E1E1;
+    --dashb-text-color: #e1e1e1;
+    --dashb-text-header-color: #e1e1e1;
+    --dashb-text-list-color: #e1e1e1;
     --dashb-body-header-color: #000000;
 
     --dashb-primary-background: #111111;
-    --dashb-header-background: #131E23;
-    --dashb-list-background: #1C1C1C;
+    --dashb-header-background: #131e23;
+    --dashb-list-background: #1c1c1c;
   }
 `;
 
@@ -41,4 +41,3 @@ ${lightStyles}
 ${darkStyles}
 }
 `;
-

@@ -1,8 +1,8 @@
 // @ts-check
 
-import eslint from '@eslint/js';
-import { defineConfig } from 'eslint/config';
-import tseslint from 'typescript-eslint';
+import eslint from "@eslint/js";
+import { defineConfig } from "eslint/config";
+import tseslint from "typescript-eslint";
 
 export default defineConfig(
   eslint.configs.recommended,
@@ -11,12 +11,12 @@ export default defineConfig(
   {
     rules: {
       "no-unused-vars": "off",
-      "@typescript-eslint/no-unused-vars":[
+      "@typescript-eslint/no-unused-vars": [
         "error",
         {
-          "argsIgnorePattern": "^_",
-        }
-      ]
-    }
-  }
+          argsIgnorePattern: "^_",
+        },
+      ],
+    },
+  },
 );
