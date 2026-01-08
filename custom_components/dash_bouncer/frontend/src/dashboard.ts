@@ -1,5 +1,5 @@
 import { LitElement, html, css } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
+import { customElement, property } from "lit/decorators.js";
 import { Task } from "@lit/task";
 
 import type { HomeAssistant } from "./hass/types";
@@ -24,7 +24,6 @@ export class DashBouncerDashboard extends LitElement {
         people,
         panels,
       };
-      console.log(result);
       return result;
     },
     args: () => [],
@@ -35,8 +34,8 @@ export class DashBouncerDashboard extends LitElement {
     const uiMode = darkMode ? "dark" : "light";
     return this._dataTask.render({
       pending: () => html`<hass-loading-screen></hass-loading-screen>`,
-      complete: ({ people }) => html`
-        <div class="main ${uiMode}">
+      complete: ({ people, panels }) => html`
+        <div class="dashb-main ${uiMode}">
           <div class="header">DashBouncer</div>
 
           <div class="body">
@@ -55,6 +54,7 @@ export class DashBouncerDashboard extends LitElement {
                         <ha-list-item
                           @click=${this._openEditPerson}
                           .person=${person}
+                          .panels=${panels}
                         >
                           ${person.name}
                         </ha-list-item>
@@ -76,8 +76,10 @@ export class DashBouncerDashboard extends LitElement {
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const person: Person = (ev.currentTarget as any).person;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const panels: [Panel] = (ev.currentTarget as any).panels;
 
-    openDialog(this, { person });
+    openDialog(this, { person, panels });
   }
 
   static styles = [

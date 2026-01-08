@@ -84,7 +84,7 @@ var DashBouncer = (function (exports) {
      */const i=Symbol();class h{get taskComplete(){return this.t||(1===this.i?this.t=new Promise(((t,s)=>{this.o=t,this.h=s;})):3===this.i?this.t=Promise.reject(this.l):this.t=Promise.resolve(this.u)),this.t}constructor(t,s,i){this.p=0,this.i=0,(this._=t).addController(this);const h="object"==typeof s?s:{task:s,args:i};this.v=h.task,this.j=h.args,this.m=h.argsEqual??r,this.k=h.onComplete,this.A=h.onError,this.autoRun=h.autoRun??true,"initialValue"in h&&(this.u=h.initialValue,this.i=2,this.O=this.T?.());}hostUpdate(){ true===this.autoRun&&this.S();}hostUpdated(){"afterUpdate"===this.autoRun&&this.S();}T(){if(void 0===this.j)return;const t=this.j();if(!Array.isArray(t))throw Error("The args function must return an array");return t}async S(){const t=this.T(),s=this.O;this.O=t,t===s||void 0===t||void 0!==s&&this.m(s,t)||await this.run(t);}async run(t){let s,h;t??=this.T(),this.O=t,1===this.i?this.q?.abort():(this.t=void 0,this.o=void 0,this.h=void 0),this.i=1,"afterUpdate"===this.autoRun?queueMicrotask((()=>this._.requestUpdate())):this._.requestUpdate();const r=++this.p;this.q=new AbortController;let e=false;try{s=await this.v(t,{signal:this.q.signal});}catch(t){e=true,h=t;}if(this.p===r){if(s===i)this.i=0;else {if(false===e){try{this.k?.(s);}catch{}this.i=2,this.o?.(s);}else {try{this.A?.(h);}catch{}this.i=3,this.h?.(h);}this.u=s,this.l=h;}this._.requestUpdate();}}abort(t){1===this.i&&this.q?.abort(t);}get value(){return this.u}get error(){return this.l}get status(){return this.i}render(t){switch(this.i){case 0:return t.initial?.();case 1:return t.pending?.();case 2:return t.complete?.(this.value);case 3:return t.error?.(this.error);default:throw Error("Unexpected status: "+this.i)}}}const r=(s,i)=>s===i||s.length===i.length&&s.every(((s,h)=>!f$1(s,i[h])));
 
     const baseStyles = i$4 `
-  :host > div.main {
+  :host > .dashb-main {
     --dashb-font-size-scale: 1;
     --dashb-header-font-size: calc(20px * var(--dashb-font-size-scale));
     --dashb-body-header-font-size: calc(24px * var(--dashb-font-size-scale));
@@ -92,7 +92,7 @@ var DashBouncer = (function (exports) {
   }
 `;
     const lightStyles = i$4 `
-  :host > div.main.light {
+  :host > .dashb-main.light {
     --dashb-text-color: #000000;
     --dashb-text-header-color: #000000;
     --dashb-text-list-color: #000000;
@@ -101,18 +101,32 @@ var DashBouncer = (function (exports) {
     --dashb-primary-background: #ffffff;
     --dashb-header-background: #aaff33;
     --dashb-list-background: #aaaaaa;
+    --dashb-secondary-background: #ffff;
+
+    --dashb-select-option-color: #222222;
+    --dashb-select-option-text: #222222;
+
+    --dashb-dialog-header-line: #ffffff;
   }
 `;
     const darkStyles = i$4 `
-  :host > div.main.dark {
+  :host > .dashb-main.dark {
     --dashb-text-color: #e1e1e1;
     --dashb-text-header-color: #e1e1e1;
     --dashb-text-list-color: #e1e1e1;
     --dashb-body-header-color: #000000;
 
     --dashb-primary-background: #111111;
+    --dashb-secondary-background: #282828;
     --dashb-header-background: #131e23;
     --dashb-list-background: #1c1c1c;
+
+    --dashb-table-secondary-background: #161616;
+
+    --dashb-select-option-color: #0f2d3d;
+    --dashb-select-option-text: #67c5f8;
+
+    --dashb-dialog-header-line: #282828;
   }
 `;
     const styles = i$4 `
@@ -203,7 +217,6 @@ ${darkStyles}
                         people,
                         panels,
                     };
-                    console.log(result);
                     return result;
                 },
                 args: () => [],
@@ -214,8 +227,8 @@ ${darkStyles}
             const uiMode = darkMode ? "dark" : "light";
             return this._dataTask.render({
                 pending: () => b `<hass-loading-screen></hass-loading-screen>`,
-                complete: ({ people }) => b `
-        <div class="main ${uiMode}">
+                complete: ({ people, panels }) => b `
+        <div class="dashb-main ${uiMode}">
           <div class="header">DashBouncer</div>
 
           <div class="body">
@@ -233,6 +246,7 @@ ${darkStyles}
                         <ha-list-item
                           @click=${this._openEditPerson}
                           .person=${person}
+                          .panels=${panels}
                         >
                           ${person.name}
                         </ha-list-item>
@@ -252,7 +266,9 @@ ${darkStyles}
             }
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const person = ev.currentTarget.person;
-            openDialog(this, { person });
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const panels = ev.currentTarget.panels;
+            openDialog(this, { person, panels });
         }
     };
     exports.DashBouncerDashboard.styles = [
@@ -308,38 +324,251 @@ ${darkStyles}
     ], exports.DashBouncerDashboard);
 
     // Material Design Icons v7.4.47
+    var mdiCancel = "M12 2C17.5 2 22 6.5 22 12S17.5 22 12 22 2 17.5 2 12 6.5 2 12 2M12 4C10.1 4 8.4 4.6 7.1 5.7L18.3 16.9C19.3 15.5 20 13.8 20 12C20 7.6 16.4 4 12 4M16.9 18.3L5.7 7.1C4.6 8.4 4 10.1 4 12C4 16.4 7.6 20 12 20C13.9 20 15.6 19.4 16.9 18.3Z";
+    var mdiCheck = "M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z";
     var mdiClose = "M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z";
 
+    var BounceOption;
+    (function (BounceOption) {
+        BounceOption["allow"] = "ALLOW";
+        BounceOption["block"] = "BLOCK";
+        BounceOption["default"] = "DEFAULT";
+    })(BounceOption || (BounceOption = {}));
+
+    const OPTIONS = [BounceOption.allow, BounceOption.block, BounceOption.default];
     exports.DashBouncerDialog = class DashBouncerDialog extends i$1 {
         showDialog(params) {
             this.person = params.person;
+            this.panels = params.panels;
+            this.config = params.config ?? { default: BounceOption.allow, panels: {} };
+        }
+        _defaultSelect(event) {
+            this.config = { ...this.config, default: event.detail };
+        }
+        _panelSelect(event) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const urlPath = event.target.panel_url;
+            const option = event.detail;
+            if (option == BounceOption.default) {
+                const { [urlPath]: _, ...rest } = this.config.panels;
+                this.config = {
+                    ...this.config,
+                    panels: {
+                        ...rest,
+                    },
+                };
+            }
+            else {
+                this.config = {
+                    ...this.config,
+                    panels: {
+                        ...this.config.panels,
+                        [urlPath]: event.detail,
+                    },
+                };
+            }
+        }
+        _setTable(option) {
+            if (option == BounceOption.default) {
+                this.config = {
+                    ...this.config,
+                    panels: {},
+                };
+            }
+            else {
+                const panels_config = {};
+                for (const panel of this.panels) {
+                    panels_config[panel.url_path] = option;
+                }
+                this.config = {
+                    ...this.config,
+                    panels: panels_config,
+                };
+            }
+        }
+        _save() {
+            console.log("TODO: save into API");
         }
         render() {
-            if (!this.person) {
+            if (!this.person || !this.panels || !this.config) {
                 return A;
             }
+            const darkMode = this.hass.themes.darkMode;
+            const uiMode = darkMode ? "dark" : "light";
             return b `
-      <ha-dialog open .heading=${true} @closed=${this.closeDialog}>
+      <ha-dialog
+        class="dashb-main ${uiMode}"
+        open
+        .heading=${true}
+        @closed=${this.closeDialog}
+      >
         <div slot="heading" class="header_title">
           <ha-icon-button
             dialogAction="cancel"
             .path=${mdiClose}
             class="header_button"
           ></ha-icon-button>
-          <span class="dialog-header">${this.person.name}</span>
+          <h2><span class="dialog-header">${this.person.name}</span></h2>
         </div>
-        asdasdasd asd a asdk nasd as dklasd alsk dnas dlkasn
+
+        <div class="configs">
+          <div>Default bounce</div>
+          <dash-bouncer-select
+            .selected=${this.config.default}
+            .options=${OPTIONS.filter((x) => x != BounceOption.default)}
+            @select=${this._defaultSelect}
+          ></dash-bouncer-select>
+        </div>
+
+        <div class="configs toggle">
+          <div>Table toggle</div>
+          <div class="actions">
+            <ha-button
+              size="small"
+              appearance="filled"
+              @click=${() => this._setTable(BounceOption.allow)}
+            >
+              Allow
+            </ha-button>
+            <ha-button
+              size="small"
+              appearance="filled"
+              @click=${() => this._setTable(BounceOption.block)}
+            >
+              Block
+            </ha-button>
+            <ha-button
+              size="small"
+              appearance="filled"
+              @click=${() => this._setTable(BounceOption.default)}
+            >
+              Default
+            </ha-button>
+          </div>
+        </div>
+
+        <div class="table">
+          <table>
+            <thead>
+              <tr>
+                <th class="left">Name (URL)</th>
+                <th>Visible</th>
+                <th>Admin</th>
+                <th>Bounce</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${this.panels.map((panel) => b `
+                  <tr class="tr-body">
+                    <td>${panel.title ?? "<none>"} (/${panel.url_path})</td>
+                    <td class="center">
+                      <ha-svg-icon
+                        .path=${panel.default_visible ? mdiCheck : mdiCancel}
+                      ></ha-svg-icon>
+                    </td>
+                    <td class="center">
+                      <ha-svg-icon
+                        .path=${panel.require_admin ? mdiCheck : mdiCancel}
+                      ></ha-svg-icon>
+                    </td>
+                    <td>
+                      <dash-bouncer-select
+                        .selected=${this.config.panels[panel.url_path] ??
+            BounceOption.default}
+                        .options=${OPTIONS}
+                        .panel_url=${panel.url_path}
+                        @select=${this._panelSelect}
+                      ></dash-bouncer-select>
+                    </td>
+                  </tr>
+                `)}
+            </tbody>
+          </table>
+        </div>
+
+        <ha-button slot="primaryAction" @click=${this._save}> Save </ha-button>
       </ha-dialog>
     `;
         }
         closeDialog() {
             this.person = undefined;
+            this.panels = undefined;
         }
     };
-    exports.DashBouncerDialog.styles = i$4 ``;
+    exports.DashBouncerDialog.styles = [
+        styles,
+        i$4 `
+      .header_title {
+        display: flex;
+        align-items: center;
+        padding: 6px 6px 0;
+        border: none;
+        border-bottom: 2px solid var(--dashb-dialog-header-line);
+      }
+
+      .configs {
+        display: flex;
+        justify-content: space-between;
+      }
+
+      .configs.toggle {
+        margin-top: 18px;
+      }
+
+      .actions > ha-button {
+        margin-left: 3px;
+        margin-right: 3px;
+      }
+
+      table {
+        border-collapse: collapse;
+      }
+
+      .table {
+        margin-top: 24px;
+        border-radius: 10px;
+        overflow-y: hidden;
+      }
+
+      td,
+      th {
+        padding: 12px 8px;
+      }
+
+      th {
+        border-bottom: 2px solid #dddddd;
+        background-color: var(--dashb-secondary-background);
+      }
+
+      th.left {
+        text-align: left;
+      }
+
+      td.center {
+        text-align: center;
+      }
+
+      tr:nth-child(even) {
+        background-color: var(--dashb-table-secondary-background);
+      }
+
+      tr:nth-child(odd).tr-body {
+        background-color: var(--dashb-primary-background);
+      }
+    `,
+    ];
+    __decorate([
+        n({ attribute: false })
+    ], exports.DashBouncerDialog.prototype, "hass", void 0);
     __decorate([
         r$1()
     ], exports.DashBouncerDialog.prototype, "person", void 0);
+    __decorate([
+        r$1()
+    ], exports.DashBouncerDialog.prototype, "panels", void 0);
+    __decorate([
+        r$1()
+    ], exports.DashBouncerDialog.prototype, "config", void 0);
     exports.DashBouncerDialog = __decorate([
         t("dash-bouncer-dialog")
     ], exports.DashBouncerDialog);
@@ -348,6 +577,78 @@ ${darkStyles}
         __proto__: null,
         get DashBouncerDialog () { return exports.DashBouncerDialog; }
     });
+
+    const optionText = (option) => {
+        switch (option) {
+            case BounceOption.allow:
+                return "Allow";
+            case BounceOption.block:
+                return "Block";
+            case BounceOption.default:
+                return "Default";
+        }
+    };
+    exports.DashBouncerSelect = class DashBouncerSelect extends i$1 {
+        _handleClick(option) {
+            const event = new CustomEvent("select", { detail: option, bubbles: true });
+            this.dispatchEvent(event);
+        }
+        render() {
+            return b `
+      <div class="options_holder">
+        ${this.options.map((option) => {
+            const selected = this.selected == option ? "selected" : "";
+            return b `
+            <div
+              class="option ${selected}"
+              .entry=${option}
+              @click=${() => this._handleClick(option)}
+            >
+              ${optionText(option)}
+            </div>
+          `;
+        })}
+      </div>
+    `;
+        }
+    };
+    exports.DashBouncerSelect.styles = i$4 `
+    .options_holder {
+      display: flex;
+      flex-direction: row;
+      cursor: pointer;
+    }
+
+    .option {
+      padding: 6px;
+      border-width: 3px;
+      border-style: solid solid solid none;
+      border-color: var(--dashb-select-option-color);
+      user-select: none;
+    }
+    .option:first-child {
+      border-left-style: solid;
+      border-radius: 6px 0 0 6px;
+    }
+    .option:last-child {
+      border-radius: 0 6px 6px 0;
+    }
+
+    .selected {
+      background-color: var(--dashb-select-option-color);
+      color: var(--dashb-select-option-text);
+      font-weight: bold;
+    }
+  `;
+    __decorate([
+        n()
+    ], exports.DashBouncerSelect.prototype, "selected", void 0);
+    __decorate([
+        n({ attribute: false })
+    ], exports.DashBouncerSelect.prototype, "options", void 0);
+    exports.DashBouncerSelect = __decorate([
+        t("dash-bouncer-select")
+    ], exports.DashBouncerSelect);
 
     return exports;
 
