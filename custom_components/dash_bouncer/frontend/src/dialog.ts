@@ -1,12 +1,24 @@
 import { LitElement, html, css, nothing } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
+import { customElement, property, state, query } from "lit/decorators.js";
 
 import { mdiClose, mdiCheck, mdiCancel } from "@mdi/js";
 
-import type { HomeAssistant } from "./hass/types";
+import { fireEvent } from "./utils/fire_event";
+
+import type { HomeAssistant, HaDialog } from "./hass/types";
+
 import { styles } from "./hass/styles";
-import type { DialogData, UserConfig, Person, Panel } from "./types";
+
+import type {
+  DialogData,
+  UserConfig,
+  Person,
+  Panel,
+  BouncerConfig,
+} from "./types";
 import { BounceOption } from "./types";
+
+import { configToBouncerConfig } from "./utils/config_transformer";
 
 const OPTIONS = [BounceOption.allow, BounceOption.block, BounceOption.default];
 
@@ -15,8 +27,10 @@ export class DashBouncerDialog extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
 
   @state() private person: Person;
-  @state() private panels: [Panel];
+  @state() private panels: Panel[];
   @state() private config: UserConfig;
+
+  @query("ha-dialog") private _dialog?: HaDialog;
 
   public showDialog(params: DialogData): void {
     this.person = params.person;
@@ -70,8 +84,16 @@ export class DashBouncerDialog extends LitElement {
     }
   }
 
-  private _save() {
-    console.log("TODO: save into API");
+  private async _save() {
+    const bouncerUserConfig = configToBouncerConfig(this.config);
+
+    const newBouncerConfig = await this.hass.callApi<BouncerConfig>(
+      "POST",
+      `dash_bouncer/config/${this.person.id}`,
+      { ...bouncerUserConfig },
+    );
+    fireEvent(this, "dash-bouncer-new-config", { config: newBouncerConfig });
+    this._dialog?.close();
   }
 
   render() {

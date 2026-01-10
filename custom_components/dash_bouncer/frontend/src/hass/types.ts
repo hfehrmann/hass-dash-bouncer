@@ -12,9 +12,14 @@ export interface HomeAssistant {
   ): Promise<T>;
 }
 
+export interface HaDialog {
+  close(): void;
+}
+
 declare global {
   interface HASSDomEvents {
     "show-dialog": ShowDialogParams<unknown>;
+    "dialog-closed": DialogClosedParams;
   }
 }
 
@@ -23,4 +28,8 @@ interface ShowDialogParams<T> {
   dialogImport: () => Promise<unknown>;
   dialogParams: T;
   addHistory?: boolean;
+}
+
+interface DialogClosedParams {
+  dialog: string;
 }

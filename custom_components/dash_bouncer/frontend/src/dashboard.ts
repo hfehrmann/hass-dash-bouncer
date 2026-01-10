@@ -1,11 +1,15 @@
 import { LitElement, html, css } from "lit";
-import { customElement, property } from "lit/decorators.js";
+import { customElement, property, state } from "lit/decorators.js";
 import { Task } from "@lit/task";
 
 import type { HomeAssistant } from "./hass/types";
 import { styles } from "./hass/styles";
-import type { Person, Panel } from "./types";
+
+import type { Person, Panel, BouncerConfig, UserConfig } from "./types";
+
 import { openDialog } from "./utils/helpers";
+
+import { bouncerConfigToConfig } from "./utils/config_transformer";
 
 @customElement("dash-bouncer-dashboard")
 export class DashBouncerDashboard extends LitElement {
@@ -13,14 +17,19 @@ export class DashBouncerDashboard extends LitElement {
 
   @property({ type: Boolean }) public narrow = false;
 
+  @state() public config?: BouncerConfig;
+
   private _dataTask = new Task(this, {
     task: async () => {
-      const [people, panels] = await Promise.all([
-        this.hass.callApi<[Person]>("GET", "dash_bouncer/users"),
-        this.hass.callApi<[Panel]>("GET", "dash_bouncer/panels"),
+      const [people, panels, config] = await Promise.all([
+        this.hass.callApi<Person[]>("GET", "dash_bouncer/users"),
+        this.hass.callApi<Panel[]>("GET", "dash_bouncer/panels"),
+        this.hass.callApi<BouncerConfig>("GET", "dash_bouncer/config"),
       ]);
 
-      const result: { people: [Person]; panels: [Panel] } = {
+      this.config = config;
+
+      const result: { people: Person[]; panels: Panel[] } = {
         people,
         panels,
       };
@@ -28,6 +37,15 @@ export class DashBouncerDashboard extends LitElement {
     },
     args: () => [],
   });
+
+  private _userConfig(person: Person, panels: Panel[]): UserConfig | null {
+    const config = this.config?.users[person.id];
+    if (!config) {
+      return null;
+    }
+
+    return bouncerConfigToConfig(config, panels);
+  }
 
   render() {
     const darkMode = this.hass.themes.darkMode;
@@ -77,9 +95,16 @@ export class DashBouncerDashboard extends LitElement {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const person: Person = (ev.currentTarget as any).person;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const panels: [Panel] = (ev.currentTarget as any).panels;
+    const panels: Panel[] = (ev.currentTarget as any).panels;
 
-    openDialog(this, { person, panels });
+    const config = this._userConfig(person, panels);
+    window.addEventListener("dash-bouncer-new-config", this._newConfig);
+    openDialog(this, { person, panels, ...(config && { config }) });
+  }
+
+  private _newConfig(ev: CustomEvent) {
+    const { config } = ev.detail;
+    this.config = { ...config };
   }
 
   static styles = [

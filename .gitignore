@@ -3,3 +3,5 @@ __pycache__/
 node_modules/
 
 .nvim.lua
+
+custom_components/dash_bouncer/access.yaml

@@ -10,6 +10,16 @@ export interface Panel {
   title?: string;
 }
 
+export interface BouncerUserConfig {
+  default_bounce: BounceOption;
+  allowed?: string[];
+  blocked?: string[];
+}
+
+export interface BouncerConfig {
+  users: Record<string, BouncerUserConfig>;
+}
+
 export interface UserConfig {
   default: BounceOption;
   panels: Record<string, BounceOption>;
@@ -17,12 +27,22 @@ export interface UserConfig {
 
 export interface DialogData {
   person: Person;
-  panels: [Panel];
+  panels: Panel[];
   config?: UserConfig;
 }
 
 export enum BounceOption {
-  allow = "ALLOW",
-  block = "BLOCK",
-  default = "DEFAULT",
+  allow = "allow",
+  block = "block",
+  default = "default",
+}
+
+declare global {
+  interface HASSDomEvents {
+    "dash-bouncer-new-config": NewBouncerConfig;
+  }
+}
+
+export interface NewBouncerConfig {
+  config: BouncerConfig;
 }
