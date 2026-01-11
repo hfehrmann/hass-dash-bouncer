@@ -1,18 +1,20 @@
 """Define backend middlewares."""
 import logging
-from collections.abc import Callable
+from collections.abc import Callable, Coroutine
+from functools import wraps
 from typing import Any, cast
 
+from homeassistant.components import websocket_api
+from homeassistant.components.frontend.storage import SystemStore, with_system_store
 from homeassistant.components.websocket_api.connection import ActiveConnection
 from homeassistant.components.websocket_api.const import DOMAIN as WS_DOMAIN
 from homeassistant.core import HomeAssistant, callback
 
 from .config import BounceOption, Config
-from .const import DOMAIN, PERMANENT_PANELS
+from .const import DEFAULT_PANEL, DOMAIN, PERMANENT_PANELS
 
 _LOGGER = logging.getLogger(__name__)
 
-type SendMessageFunc = Callable[[HomeAssistant, ActiveConnection, dict[str, Any]], None]
 
 def patch_panel_list_ws(hass: HomeAssistant) -> None:
     """Set middleware for 'get_panels' WS endpoint."""
@@ -23,15 +25,18 @@ def patch_panel_list_ws(hass: HomeAssistant) -> None:
         __slots__ = [
             "hass",
             "original_connection",
+            "store",
         ]
 
         def __init__(
             self,
             hass: HomeAssistant,
-            connection: ActiveConnection
+            connection: ActiveConnection,
+            store: SystemStore,
         ) -> None:
             self.hass = hass
             self.original_connection = connection
+            self.store = store
 
         def __getattr__(self, name: str): # noqa: ANN204
             return getattr(self.original_connection, name)
@@ -75,18 +80,42 @@ def patch_panel_list_ws(hass: HomeAssistant) -> None:
             if user.is_owner:
                 result["dash_bouncer"] = panels["dash_bouncer"]
 
+            default_panel = self.store.data.get("core", {}).get("default_panel")
+
+            if DEFAULT_PANEL not in result:
+                result[DEFAULT_PANEL] = panels[default_panel]
+            if default_panel not in result:
+                result[default_panel] = panels[default_panel]
+
             data["result"] = result
             return self.original_connection.send_message(data)
 
 
     @callback
     def rbac_websocket_get_panels(
-        get_panel_func: SendMessageFunc
-    ) -> Callable[[HomeAssistant, ActiveConnection, dict[str, Any]], None]:
-        def wrapper(
-            hass: HomeAssistant, connection: ActiveConnection, msg: dict[str, Any]
+        get_panel_func: Callable[
+            [HomeAssistant, ActiveConnection, dict[str, Any]],
+            None
+        ],
+    ) -> Callable[
+        [HomeAssistant, ActiveConnection, dict[str, Any], SystemStore],
+        Coroutine[Any, Any, None],
+    ]:
+
+        @wraps(get_panel_func)
+        @websocket_api.async_response
+        @with_system_store
+        async def wrapper(
+            hass: HomeAssistant,
+            connection: ActiveConnection,
+            msg: dict[str, Any],
+            store: SystemStore,
         ) -> None:
-            new_connection = DashBouncerFilterPanelActiveConnection(hass, connection)
+            new_connection = DashBouncerFilterPanelActiveConnection(
+                hass,
+                connection,
+                store
+            )
             get_panel_func(hass, new_connection,  msg)
 
         return wrapper
