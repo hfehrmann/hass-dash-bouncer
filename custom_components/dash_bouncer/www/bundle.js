@@ -306,8 +306,15 @@ ${darkStyles}
             return this._dataTask.render({
                 pending: () => b `<hass-loading-screen></hass-loading-screen>`,
                 complete: ({ people, panels }) => b `
-        <div class="dashb-main ${uiMode}">
-          <div class="header">DashBouncer</div>
+        <div class="dashb-main ${uiMode} ${this.narrow ? "narrow" : ""}">
+          <div class="header">
+            <ha-menu-button
+              .hass=${this.hass}
+              .narrow=${this.narrow}
+            ></ha-menu-button>
+            <span>DashBouncer</span>
+          </div>
+
 
           <div class="body">
             <div class="body-title">DashBouncer</div>
@@ -343,22 +350,31 @@ ${darkStyles}
         styles,
         i$4 `
       .header {
-        padding: 18px 36px 18px;
+        padding: 0 6px 0;
         background-color: var(--dashb-header-background);
         font-size: var(--dashb-header-font-size);
         font-weight: 400;
+        display: flex;
+        align-items: center;
+        height: 56px;
+      }
+      .header > span {
+        margin-left: 24px
+      }
+      .narrow .header > span {
+        margin-left: 12px
       }
 
       .body {
         padding: 16px;
         margin: 0 auto;
-        max-width: 1040px;
+        max-width: 700px;
       }
 
       .body-title {
         margin-top: 16px;
         font-size: var(--dashb-body-header-font-size);
-        font-weight: 40G;
+        font-weight: 400;
         opacity: var(--dashb-body-header-opacity);
       }
 
@@ -367,6 +383,7 @@ ${darkStyles}
         display: flex;
         flex-direction: row;
         flex-wrap: wrap;
+        row-gap: 24px;
       }
 
       .intro {
@@ -376,7 +393,8 @@ ${darkStyles}
       }
 
       .users {
-        max-width: 600px;
+        max-width: 400px;
+        min-width: 300px;
         flex: 1;
       }
     `,
