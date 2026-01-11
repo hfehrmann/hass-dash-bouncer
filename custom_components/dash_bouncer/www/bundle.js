@@ -275,6 +275,11 @@ ${darkStyles}
                 },
                 args: () => [],
             });
+            this._newConfig = (ev) => {
+                const { config } = ev.detail;
+                this.config = { ...config };
+                window.removeEventListener("dash-bouncer-new-config", this._newConfig);
+            };
         }
         _userConfig(person, panels) {
             const config = this.config?.users[person.id];
@@ -282,6 +287,18 @@ ${darkStyles}
                 return null;
             }
             return bouncerConfigToConfig(config, panels);
+        }
+        _openEditPerson(ev) {
+            if (ev.currentTarget === null) {
+                return;
+            }
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const person = ev.currentTarget.person;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const panels = ev.currentTarget.panels;
+            const config = this._userConfig(person, panels);
+            window.addEventListener("dash-bouncer-new-config", this._newConfig);
+            openDialog(this, { person, panels, ...(config && { config }) });
         }
         render() {
             const darkMode = this.hass.themes.darkMode;
@@ -320,22 +337,6 @@ ${darkStyles}
         </div>
       `,
             });
-        }
-        _openEditPerson(ev) {
-            if (ev.currentTarget === null) {
-                return;
-            }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const person = ev.currentTarget.person;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const panels = ev.currentTarget.panels;
-            const config = this._userConfig(person, panels);
-            window.addEventListener("dash-bouncer-new-config", this._newConfig);
-            openDialog(this, { person, panels, ...(config && { config }) });
-        }
-        _newConfig(ev) {
-            const { config } = ev.detail;
-            this.config = { ...config };
         }
     };
     exports.DashBouncerDashboard.styles = [

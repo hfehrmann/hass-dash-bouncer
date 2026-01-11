@@ -47,6 +47,26 @@ export class DashBouncerDashboard extends LitElement {
     return bouncerConfigToConfig(config, panels);
   }
 
+  private _openEditPerson(ev: MouseEvent) {
+    if (ev.currentTarget === null) {
+      return;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const person: Person = (ev.currentTarget as any).person;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const panels: Panel[] = (ev.currentTarget as any).panels;
+
+    const config = this._userConfig(person, panels);
+    window.addEventListener("dash-bouncer-new-config", this._newConfig);
+    openDialog(this, { person, panels, ...(config && { config }) });
+  }
+
+  private _newConfig = (ev: CustomEvent) => {
+    const { config } = ev.detail;
+    this.config = { ...config };
+    window.removeEventListener("dash-bouncer-new-config", this._newConfig);
+  };
+
   render() {
     const darkMode = this.hass.themes.darkMode;
     const uiMode = darkMode ? "dark" : "light";
@@ -86,25 +106,6 @@ export class DashBouncerDashboard extends LitElement {
         </div>
       `,
     });
-  }
-
-  private _openEditPerson(ev: MouseEvent) {
-    if (ev.currentTarget === null) {
-      return;
-    }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const person: Person = (ev.currentTarget as any).person;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const panels: Panel[] = (ev.currentTarget as any).panels;
-
-    const config = this._userConfig(person, panels);
-    window.addEventListener("dash-bouncer-new-config", this._newConfig);
-    openDialog(this, { person, panels, ...(config && { config }) });
-  }
-
-  private _newConfig(ev: CustomEvent) {
-    const { config } = ev.detail;
-    this.config = { ...config };
   }
 
   static styles = [
