@@ -13,6 +13,7 @@ from homeassistant.core import HomeAssistant
 
 from .config import Config, integration_config_path
 from .const import DOMAIN as DOMAIN
+from .middleware import patch_panel_list_ws
 from .views import (
     DashBouncerConfigView,
     DashBouncerPanelsView,
@@ -32,6 +33,7 @@ async def async_setup_entry(
     await loop.run_in_executor(None, _load_config, hass)
     _register_side_panel(hass)
     await _async_register_api_call(hass)
+    patch_panel_list_ws(hass)
 
     return True
 
