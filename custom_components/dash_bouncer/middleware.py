@@ -82,8 +82,16 @@ def patch_panel_list_ws(hass: HomeAssistant) -> None:
 
             default_panel = self.store.data.get("core", {}).get("default_panel")
 
-            if DEFAULT_PANEL not in result:
-                result[DEFAULT_PANEL] = panels[default_panel]
+            # If the default panel is blocked, it can cause issues when
+            # managing the dashboards from the system setting.
+            # Defaulting to send back the 'lovelace' panel if blocked
+            # only to the owner of the instance.
+            # Depening on the sytem config, this might show the default
+            # panel two times in the sidebar
+            if DEFAULT_PANEL not in result and user.is_owner:
+                fake_default_panel = panels[default_panel].copy()
+                fake_default_panel["default_visible"] = False
+                result[DEFAULT_PANEL] = fake_default_panel
             if default_panel not in result:
                 result[default_panel] = panels[default_panel]
 
