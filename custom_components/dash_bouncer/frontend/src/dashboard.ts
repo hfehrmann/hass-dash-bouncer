@@ -82,7 +82,6 @@ export class DashBouncerDashboard extends LitElement {
             <span>DashBouncer</span>
           </div>
 
-
           <div class="body">
             <div class="body-title">DashBouncer</div>
 
@@ -119,6 +118,7 @@ export class DashBouncerDashboard extends LitElement {
     styles,
     css`
       .header {
+        color: var(--dashb-text-header-color);
         padding: 0 6px 0;
         background-color: var(--dashb-header-background);
         font-size: var(--dashb-header-font-size);
@@ -128,10 +128,10 @@ export class DashBouncerDashboard extends LitElement {
         height: 56px;
       }
       .header > span {
-        margin-left: 24px
+        margin-left: 24px;
       }
       .narrow .header > span {
-        margin-left: 12px
+        margin-left: 12px;
       }
 
       .body {

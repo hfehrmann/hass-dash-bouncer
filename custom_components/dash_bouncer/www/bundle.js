@@ -107,19 +107,21 @@ var DashBouncer = (function (exports) {
     const lightStyles = i$4 `
   :host > .dashb-main.light {
     --dashb-text-color: #000000;
-    --dashb-text-header-color: #000000;
+    --dashb-text-header-color: #ffffff;
     --dashb-text-list-color: #000000;
     --dashb-body-header-color: #000000;
 
-    --dashb-primary-background: #ffffff;
-    --dashb-header-background: #aaff33;
+    --dashb-primary-background: #fafafa;
+    --dashb-secondary-background: #e5e5e5;
+    --dashb-header-background: #009ac7;
     --dashb-list-background: #aaaaaa;
-    --dashb-secondary-background: #ffff;
 
-    --dashb-select-option-color: #222222;
-    --dashb-select-option-text: #222222;
+    --dashb-table-secondary-background: #f1f1f1;
 
-    --dashb-dialog-header-line: #ffffff;
+    --dashb-select-option-color: #dff3fc;
+    --dashb-select-option-text: #009ac7;
+
+    --dashb-dialog-header-line: #f0f0f0;
   }
 `;
     const darkStyles = i$4 `
@@ -315,7 +317,6 @@ ${darkStyles}
             <span>DashBouncer</span>
           </div>
 
-
           <div class="body">
             <div class="body-title">DashBouncer</div>
 
@@ -350,6 +351,7 @@ ${darkStyles}
         styles,
         i$4 `
       .header {
+        color: var(--dashb-text-header-color);
         padding: 0 6px 0;
         background-color: var(--dashb-header-background);
         font-size: var(--dashb-header-font-size);
@@ -359,10 +361,10 @@ ${darkStyles}
         height: 56px;
       }
       .header > span {
-        margin-left: 24px
+        margin-left: 24px;
       }
       .narrow .header > span {
-        margin-left: 12px
+        margin-left: 12px;
       }
 
       .body {
