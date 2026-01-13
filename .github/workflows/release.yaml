@@ -1,0 +1,49 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*' # Triggers the workflow when a tag starting with 'v' is pushed
+env:
+  NODE_VERSION: 18
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4 # Action to fetch your code
+
+      - name: Set up Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v6.1.0
+        with:
+          cache: npm
+          cache-dependency-path: ./custom_components/dash_bouncer/frontend/package-lock.json
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        working-directory: ./custom_components/dash_bouncer/frontend/
+        run: npm ci
+
+      - name: Install dependencies
+        working-directory: ./custom_components/dash_bouncer/frontend/
+        run: npm run build
+
+      - name: Create Release ZIP
+        uses: thedoctor0/zip-release@0.7.6
+        with:
+          directory: custom_components/dash_bouncer
+          type: 'zip'
+          filename: '../../hass_dash_bouncer.zip'
+          exclusions: '*.git* /*node_modules/* /*__pychache__/* /*frontend/*'
+
+      - name: Upload Release Asset
+        uses: ncipollo/release-action@v1
+        with:
+          name: Release ${{ github.ref_name }}
+          draft: true
+          artifacts: "./hass_dash_bouncer.zip"
+

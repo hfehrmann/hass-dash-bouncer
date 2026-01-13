@@ -5,3 +5,4 @@ node_modules/
 .nvim.lua
 
 custom_components/dash_bouncer/access.yaml
+custom_components/dash_bouncer/www/bundle.js

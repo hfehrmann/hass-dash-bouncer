@@ -1,6 +1,8 @@
 import { nodeResolve } from "@rollup/plugin-node-resolve";
 import typescript from "@rollup/plugin-typescript";
 import livereload from "rollup-plugin-livereload";
+import terser from "@rollup/plugin-terser";
+import minifyHTML from "@lit-labs/rollup-plugin-minify-html-literals";
 
 // Determine if we are in watch mode (development)
 const production = !process.env.ROLLUP_WATCH;
@@ -17,5 +19,11 @@ export default {
     include: "src/**",
     exclude: "node_modules/**",
   },
-  plugins: [nodeResolve(), typescript(), !production && livereload("../www/")],
+  plugins: [
+    production && minifyHTML(),
+    nodeResolve(),
+    typescript(),
+    !production && livereload("../www/"),
+    production && terser(),
+  ],
 };

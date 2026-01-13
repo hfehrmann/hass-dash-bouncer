@@ -7,7 +7,9 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
+    "@lit-labs/rollup-plugin-minify-html-literals": "^0.1.1",
     "@rollup/plugin-node-resolve": "^16.0.3",
+    "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.3.0",
     "eslint": "^9.39.2",
     "prettier": "3.7.4",
