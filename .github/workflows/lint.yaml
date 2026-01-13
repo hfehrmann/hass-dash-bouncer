@@ -1,0 +1,53 @@
+name: "Lint/Format"
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: 18
+
+jobs:
+  validate-backend:
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: "actions/checkout@v4"
+
+      - name: Set up Python
+        uses: actions/setup-python@v6.1.0
+        id: python
+        with:
+          python-version: "3.13"
+          cache: 'pip'
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run ruff
+        run: ruff check --fix
+
+  validate-frontend:
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: "actions/checkout@v4"
+
+      - name: Set up Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v6.1.0
+        with:
+          cache: npm
+          cache-dependency-path: ./custom_components/dash_bouncer/frontend/package-lock.json
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        working-directory: ./custom_components/dash_bouncer/frontend/
+        run: npm ci
+
+      - name: Run linter
+        working-directory: ./custom_components/dash_bouncer/frontend/
+        run: npm run lint
+
+      - name: Run formatter
+        working-directory: ./custom_components/dash_bouncer/frontend/
+        run: npm run format_check
