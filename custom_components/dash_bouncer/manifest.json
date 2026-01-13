@@ -2,11 +2,11 @@
   "domain": "dash_bouncer",
   "name": "DashBouncer",
   "codeowners": ["@hfehrmann"],
-  "dependencies": ["http"],
   "config_flow": true,
+  "dependencies": ["http"],
   "documentation": "https://github.com/hfehrmann/hass-dash-bouncer",
-  "version": "1.0.0",
   "integration_type": "hub",
   "iot_class": "local_push",
-  "requirements": []
+  "requirements": [],
+  "version": "1.0.0"
 }
