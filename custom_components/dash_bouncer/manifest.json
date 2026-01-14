@@ -5,9 +5,10 @@
   "config_flow": true,
   "dependencies": ["http"],
   "documentation": "https://github.com/hfehrmann/hass-dash-bouncer",
-  "integration_type": "hub",
+  "integration_type": "service",
   "iot_class": "local_push",
   "issue_tracker": "https://github.com/hfehrmann/hass-dash-bouncer/issues",
   "requirements": [],
+  "single_config_entry": true,
   "version": "1.0.0"
 }
