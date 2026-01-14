@@ -2,6 +2,8 @@ name: "Lint/Format"
 
 on:
   push:
+    branch:
+      - dev
   pull_request:
   workflow_dispatch:
 
@@ -51,3 +53,23 @@ jobs:
       - name: Run formatter
         working-directory: ./custom_components/dash_bouncer/frontend/
         run: npm run format_check
+
+  build-frontend:
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: "actions/checkout@v4"
+
+      - name: Set up Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v6.1.0
+        with:
+          cache: npm
+          cache-dependency-path: ./custom_components/dash_bouncer/frontend/package-lock.json
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        working-directory: ./custom_components/dash_bouncer/frontend/
+        run: npm ci
+
+      - name: Build
+        working-directory: ./custom_components/dash_bouncer/frontend/
+        run: npm run build
