@@ -43,21 +43,12 @@ def patch_panel_list_ws(hass: HomeAssistant) -> None:
 
         def send_message(self, data: dict[str, Any]) -> None:
             user = self.original_connection.user
-            username = next(
-                (
-                    c.data["username"]
-                    for c in user.credentials if "username" in c.data
-                ),
-                None
-            )
             config = cast("Config | None", self.hass.data.get(DOMAIN))
-            if username is None:
-                _LOGGER.warning("Username not found for id: %s", user.id)
 
-            if username is None or config is None:
+            if config is None:
                 return self.original_connection.send_message(data)
 
-            user_config = config.users.get(username)
+            user_config = config.users.get(user.id)
             if user_config is None:
                 return self.original_connection.send_message(data)
 

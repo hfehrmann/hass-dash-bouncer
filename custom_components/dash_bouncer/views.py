@@ -109,11 +109,11 @@ class DashBouncerConfigView(HomeAssistantView):
 class DashBouncerUserConfigView(HomeAssistantView):
     """Endpoint for getting the bouncer config."""
 
-    url = "/api/dash_bouncer/config/{user_name}"
+    url = "/api/dash_bouncer/config/{user_id}"
     name = "api:dash_bouncer:config:user"
     requires_auth = True
 
-    async def post(self, request: web.Request, user_name: str) -> web.Response:
+    async def post(self, request: web.Request, user_id: str) -> web.Response:
         """Set config for user."""
         hass = request.app["hass"]
         user = request["hass_user"]
@@ -133,7 +133,7 @@ class DashBouncerUserConfigView(HomeAssistantView):
 
             new_config = Config(users=config.users.copy())
             data = await request.json()
-            new_config.users[user_name] = UserConfig.loads(data)
+            new_config.users[user_id] = UserConfig.loads(data)
 
             config_path = integration_config_path(hass)
 

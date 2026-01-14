@@ -89,7 +89,7 @@ export class DashBouncerDialog extends LitElement {
 
     const newBouncerConfig = await this.hass.callApi<BouncerConfig>(
       "POST",
-      `dash_bouncer/config/${this.person.id}`,
+      `dash_bouncer/config/${this.person.user_id}`,
       { ...bouncerUserConfig },
     );
     fireEvent(this, "dash-bouncer-new-config", { config: newBouncerConfig });

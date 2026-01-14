@@ -39,7 +39,7 @@ export class DashBouncerDashboard extends LitElement {
   });
 
   private _userConfig(person: Person, panels: Panel[]): UserConfig | null {
-    const config = this.config?.users[person.id];
+    const config = this.config?.users[person.user_id];
     if (!config) {
       return null;
     }

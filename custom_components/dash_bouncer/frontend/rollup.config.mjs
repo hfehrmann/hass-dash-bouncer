@@ -22,7 +22,9 @@ export default {
   plugins: [
     production && minifyHTML(),
     nodeResolve(),
-    typescript(),
+    typescript({
+      ...(production && { noEmitOnError: true }),
+    }),
     !production && livereload("../www/"),
     production && terser(),
   ],
