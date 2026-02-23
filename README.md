@@ -41,6 +41,8 @@ the manual edit.
 
 ### HACS
 
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=hfehrmann&repository=hass-dash-bouncer)
+
 ### Manual
 
 1. Put the `custom_components/dash_bouncer` folder inside your home assistant `custom_components` folder. The end result should looke like
