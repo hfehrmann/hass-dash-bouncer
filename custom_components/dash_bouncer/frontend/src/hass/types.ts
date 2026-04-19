@@ -12,10 +12,6 @@ export interface HomeAssistant {
   ): Promise<T>;
 }
 
-export interface HaDialog {
-  close(): void;
-}
-
 declare global {
   interface HASSDomEvents {
     "show-dialog": ShowDialogParams<unknown>;

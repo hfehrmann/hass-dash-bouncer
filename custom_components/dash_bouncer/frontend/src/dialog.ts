@@ -1,11 +1,11 @@
 import { LitElement, html, css, nothing } from "lit";
-import { customElement, property, state, query } from "lit/decorators.js";
+import { customElement, property, state } from "lit/decorators.js";
 
 import { mdiClose, mdiCheck, mdiCancel } from "@mdi/js";
 
 import { fireEvent } from "./utils/fire_event";
 
-import type { HomeAssistant, HaDialog } from "./hass/types";
+import type { HomeAssistant } from "./hass/types";
 
 import { styles } from "./hass/styles";
 
@@ -30,12 +30,13 @@ export class DashBouncerDialog extends LitElement {
   @state() private panels: Panel[];
   @state() private config: UserConfig;
 
-  @query("ha-dialog") private _dialog?: HaDialog;
+  @state() private _open = false;
 
   public showDialog(params: DialogData): void {
     this.person = params.person;
     this.panels = params.panels;
     this.config = params.config ?? { default: BounceOption.allow, panels: {} };
+    this._open = true;
   }
 
   private _defaultSelect(event: CustomEvent): void {
@@ -93,7 +94,7 @@ export class DashBouncerDialog extends LitElement {
       { ...bouncerUserConfig },
     );
     fireEvent(this, "dash-bouncer-new-config", { config: newBouncerConfig });
-    this._dialog?.close();
+    this._open = false;
   }
 
   render() {
@@ -107,8 +108,8 @@ export class DashBouncerDialog extends LitElement {
     return html`
       <ha-dialog
         class="dashb-main ${uiMode}"
-        open
         .heading=${true}
+        .open=${this._open}
         @closed=${this.closeDialog}
       >
         <div slot="heading" class="header_title">
@@ -197,7 +198,11 @@ export class DashBouncerDialog extends LitElement {
           </table>
         </div>
 
-        <ha-button slot="primaryAction" @click=${this._save}> Save </ha-button>
+        <ha-dialog-footer slot="footer">
+          <ha-button slot="primaryAction" @click=${this._save}>
+            Save
+          </ha-button>
+        </ha-dialog-footer>
       </ha-dialog>
     `;
   }
