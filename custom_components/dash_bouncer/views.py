@@ -6,12 +6,13 @@ from typing import Any, cast
 
 import yaml
 from aiohttp import web
-from homeassistant.components.frontend import DATA_PANELS
+from homeassistant.components.frontend import DATA_PANELS, async_system_store
 from homeassistant.components.http import HomeAssistantView
 from homeassistant.components.person.const import DOMAIN as PERSON_DOMAIN
 
 from .config import Config, UserConfig, integration_config_path
 from .const import DOMAIN, PERMANENT_PANELS
+from .util import get_system_default_panel
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -143,6 +144,11 @@ class DashBouncerUserConfigView(HomeAssistantView):
 
             loop = asyncio.get_running_loop()
             await loop.run_in_executor(None, save_config)
+
+            system_store = await async_system_store(hass)
+            system_default_panel = get_system_default_panel(system_store)
+            if system_default_panel is None:
+                _LOGGER.warning("No default panel on the system")
 
             hass.data[DOMAIN] = new_config
             return self.json(new_config)
