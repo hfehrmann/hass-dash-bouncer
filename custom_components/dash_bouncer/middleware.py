@@ -12,6 +12,7 @@ from homeassistant.core import HomeAssistant, callback
 
 from .config import BounceOption, Config
 from .const import DEFAULT_PANEL, DOMAIN, PERMANENT_PANELS
+from .util import get_system_default_panel
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -71,7 +72,7 @@ def patch_panel_list_ws(hass: HomeAssistant) -> None:
             if user.is_owner:
                 result["dash_bouncer"] = panels["dash_bouncer"]
 
-            default_panel = self.store.data.get("core", {}).get("default_panel")
+            default_panel = get_system_default_panel(self.store)
 
             # If the default panel is blocked, it can cause issues when
             # managing the dashboards from the system setting.
@@ -79,19 +80,22 @@ def patch_panel_list_ws(hass: HomeAssistant) -> None:
             # only to the owner of the instance.
             # Depening on the sytem config, this might show the default
             # panel two times in the sidebar
-            if DEFAULT_PANEL not in result and user.is_owner:
-                fake_default_panel = panels[default_panel].copy()
-                fake_default_panel["default_visible"] = False
-                result[DEFAULT_PANEL] = fake_default_panel
-            if default_panel not in result:
-                result[default_panel] = panels[default_panel]
+            if default_panel is not None:
+                if DEFAULT_PANEL not in result and user.is_owner:
+                    fake_default_panel = panels[default_panel].copy()
+                    fake_default_panel["default_visible"] = False
+                    result[DEFAULT_PANEL] = fake_default_panel
+                if default_panel not in result:
+                    result[default_panel] = panels[default_panel]
+            else:
+                result[DEFAULT_PANEL] = panels[DEFAULT_PANEL]
 
             data["result"] = result
             return self.original_connection.send_message(data)
 
 
     @callback
-    def rbac_websocket_get_panels(
+    def dash_bouncer_websocket_get_panels(
         get_panel_func: Callable[
             [HomeAssistant, ActiveConnection, dict[str, Any]],
             None
@@ -120,8 +124,8 @@ def patch_panel_list_ws(hass: HomeAssistant) -> None:
         return wrapper
 
     _LOGGER.info("Attached middleware to panel list WS")
-    original_panel_handler, schema = hass.data[WS_DOMAIN]["get_panels"]
-    new_panel = rbac_websocket_get_panels(original_panel_handler), schema
+    original_handler, schema = hass.data[WS_DOMAIN]["get_panels"]
+    new_panel = dash_bouncer_websocket_get_panels(original_handler), schema
     hass.data[WS_DOMAIN]["get_panels"] = new_panel
 
 

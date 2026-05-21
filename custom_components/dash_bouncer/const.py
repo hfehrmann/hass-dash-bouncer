@@ -6,5 +6,5 @@ PERMANENT_PANELS = {
     "_my_redirect",
 }
 
-DEFAULT_PANEL = "lovelace"
+DEFAULT_PANEL = "home"
 
