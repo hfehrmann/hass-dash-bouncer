@@ -15,7 +15,7 @@ Custom integration for managing dashboard access for users.
 This integration is a middleware for the list panel endpoint for users, and the
 frontend uses the result of that endpoint to generate all the valid URLs
 a user can use to navigate inside the app. This means, the integration
-blocks the navigation possibilities of a user, even if the enter the exact
+blocks the navigation possibilities of a user, even if they enter the exact
 URL they want to navigate to.
 
 You can:
@@ -30,6 +30,9 @@ for manual edits, but you will need to restart Home Assistant to load
 the manual edit.
 
 ### Caveats
+- The integration always send the default dashboard configured in the system,
+  since HA relies on it for fallback navigation. Select a new dashboard in
+  **Settings > Dashboards**
 - You can block a user `/profile` URL, and that user looses access to its
   dashboard
 - The default dashboard selection in the user profile uses another endpoint to

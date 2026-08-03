@@ -2,8 +2,13 @@ export interface Themes {
   darkMode: boolean;
 }
 
+export interface HomeAssistantSystemData {
+  default_panel?: string;
+}
+
 export interface HomeAssistant {
   themes: Themes;
+  systemData?: HomeAssistantSystemData;
   callApi<T>(
     method: "GET" | "POST" | "PUT" | "DELETE",
     path: string,

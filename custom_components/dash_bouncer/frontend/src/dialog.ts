@@ -1,7 +1,7 @@
 import { LitElement, html, css, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 
-import { mdiClose, mdiCheck, mdiCancel } from "@mdi/js";
+import { mdiClose, mdiCheck, mdiCancel, mdiHomeCircleOutline } from "@mdi/js";
 
 import { fireEvent } from "./utils/fire_event";
 
@@ -21,6 +21,7 @@ import { BounceOption } from "./types";
 import { configToBouncerConfig } from "./utils/config_transformer";
 
 const OPTIONS = [BounceOption.allow, BounceOption.block, BounceOption.default];
+const DEFAULT_PANEL = "home";
 
 @customElement("dash-bouncer-dialog")
 export class DashBouncerDialog extends LitElement {
@@ -29,6 +30,7 @@ export class DashBouncerDialog extends LitElement {
   @state() private person: Person;
   @state() private panels: Panel[];
   @state() private config: UserConfig;
+  @state() private systemDefaultPanel: string;
 
   @state() private _open = false;
 
@@ -36,6 +38,8 @@ export class DashBouncerDialog extends LitElement {
     this.person = params.person;
     this.panels = params.panels;
     this.config = params.config ?? { default: BounceOption.allow, panels: {} };
+    this.systemDefaultPanel =
+      this.hass.systemData?.default_panel ?? DEFAULT_PANEL;
     this._open = true;
   }
 
@@ -157,6 +161,15 @@ export class DashBouncerDialog extends LitElement {
           </div>
         </div>
 
+        <div class="disclaimer">
+          Dashboard marked with
+          <ha-svg-icon .path=${mdiHomeCircleOutline}></ha-svg-icon>
+          is the current system default.
+          <br />
+          DashBouncer always returns it. You can change the default dashboard in
+          Settings.
+        </div>
+
         <div class="table">
           <table>
             <thead>
@@ -168,10 +181,21 @@ export class DashBouncerDialog extends LitElement {
               </tr>
             </thead>
             <tbody>
-              ${this.panels.map(
-                (panel) => html`
-                  <tr class="tr-body">
-                    <td>${panel.title ?? "<none>"} (/${panel.url_path})</td>
+              ${this.panels.map((panel) => {
+                const isDefault = panel.url_path == this.systemDefaultPanel;
+                const selectedOption =
+                  this.config.panels[panel.url_path] ?? BounceOption.default;
+                const isBlocked = selectedOption == BounceOption.block;
+                return html`
+                  <tr class="tr-body ${isDefault && isBlocked ? "warn" : ""}">
+                    <td>
+                      ${panel.title ?? "<none>"} (/${panel.url_path})
+                      ${isDefault
+                        ? html`<ha-svg-icon
+                            .path=${mdiHomeCircleOutline}
+                          ></ha-svg-icon>`
+                        : nothing}
+                    </td>
                     <td class="center">
                       <ha-svg-icon
                         .path=${panel.default_visible ? mdiCheck : mdiCancel}
@@ -184,16 +208,15 @@ export class DashBouncerDialog extends LitElement {
                     </td>
                     <td>
                       <dash-bouncer-select
-                        .selected=${this.config.panels[panel.url_path] ??
-                        BounceOption.default}
+                        .selected=${selectedOption}
                         .options=${OPTIONS}
                         .panel_url=${panel.url_path}
                         @select=${this._panelSelect}
                       ></dash-bouncer-select>
                     </td>
                   </tr>
-                `,
-              )}
+                `;
+              })}
             </tbody>
           </table>
         </div>
@@ -242,7 +265,7 @@ export class DashBouncerDialog extends LitElement {
       }
 
       .table {
-        margin-top: 24px;
+        margin-top: 12px;
         border-radius: 10px;
         overflow-y: hidden;
       }
@@ -271,6 +294,15 @@ export class DashBouncerDialog extends LitElement {
 
       tr:nth-child(odd).tr-body {
         background-color: var(--dashb-primary-background);
+      }
+
+      tr.tr-body.warn {
+        background-color: var(--dashb-block-warning-color);
+      }
+
+      .disclaimer {
+        font-size: small;
+        margin-top: 18px;
       }
     `,
   ];

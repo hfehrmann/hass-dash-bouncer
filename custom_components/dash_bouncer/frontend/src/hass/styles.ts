@@ -27,6 +27,8 @@ const lightStyles = css`
     --dashb-select-option-text: #009ac7;
 
     --dashb-dialog-header-line: #f0f0f0;
+
+    --dashb-block-warning-color: #ffe000;
   }
 `;
 
@@ -48,6 +50,8 @@ const darkStyles = css`
     --dashb-select-option-text: #67c5f8;
 
     --dashb-dialog-header-line: #282828;
+
+    --dashb-block-warning-color: #9d8e23;
   }
 `;
 
