@@ -11,12 +11,13 @@ import { styles } from "./hass/styles";
 
 import type {
   DialogData,
-  UserConfig,
-  Person,
+  DialogDataSaveOp,
+  DialogEntity,
+  DialogEntityConfig,
   Panel,
-  BouncerConfig,
-} from "./types";
-import { BounceOption } from "./types";
+} from "./types/base";
+import type { BouncerConfig } from "./types/backend";
+import { BounceOption } from './types/bounceOption';
 
 import { configToBouncerConfig } from "./utils/config_transformer";
 
@@ -27,17 +28,19 @@ const DEFAULT_PANEL = "home";
 export class DashBouncerDialog extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
 
-  @state() private person: Person;
+  @state() private entity: DialogEntity;
   @state() private panels: Panel[];
-  @state() private config: UserConfig;
+  @state() private config: DialogEntityConfig;
+  @state() private save: DialogDataSaveOp;
   @state() private systemDefaultPanel: string;
 
   @state() private _open = false;
 
   public showDialog(params: DialogData): void {
-    this.person = params.person;
+    this.entity = params.entity;
     this.panels = params.panels;
-    this.config = params.config ?? { default: BounceOption.allow, panels: {} };
+    this.config = params.config;
+    this.save = params.save;
     this.systemDefaultPanel =
       this.hass.systemData?.default_panel ?? DEFAULT_PANEL;
     this._open = true;
@@ -90,19 +93,13 @@ export class DashBouncerDialog extends LitElement {
   }
 
   private async _save() {
-    const bouncerUserConfig = configToBouncerConfig(this.config);
-
-    const newBouncerConfig = await this.hass.callApi<BouncerConfig>(
-      "POST",
-      `dash_bouncer/config/${this.person.user_id}`,
-      { ...bouncerUserConfig },
-    );
-    fireEvent(this, "dash-bouncer-new-config", { config: newBouncerConfig });
+    const newConfig = await this.save(this.entity, this.config);
+    fireEvent(this, "dash-bouncer-new-config", { config: newConfig });
     this._open = false;
   }
 
   render() {
-    if (!this.person || !this.panels || !this.config) {
+    if (!this.entity || !this.panels || !this.config) {
       return nothing;
     }
 
@@ -122,7 +119,7 @@ export class DashBouncerDialog extends LitElement {
             .path=${mdiClose}
             class="header_button"
           ></ha-icon-button>
-          <h2><span class="dialog-header">${this.person.name}</span></h2>
+          <h2><span class="dialog-header">${this.entity.name}</span></h2>
         </div>
 
         <div class="configs">
@@ -231,8 +228,9 @@ export class DashBouncerDialog extends LitElement {
   }
 
   private closeDialog(): void {
-    this.person = undefined;
+    this.entity = undefined;
     this.panels = undefined;
+    this._open = false;
   }
 
   static styles = [

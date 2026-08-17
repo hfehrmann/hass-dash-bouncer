@@ -1,7 +1,7 @@
 import { LitElement, html, css } from "lit";
 import { customElement, property } from "lit/decorators.js";
 
-import { BounceOption } from "./types";
+import { BounceOption } from './types/bounceOption';
 
 const optionText = (option: BounceOption): string => {
   switch (option) {
@@ -11,6 +11,8 @@ const optionText = (option: BounceOption): string => {
       return "Block";
     case BounceOption.default:
       return "Default";
+    case BounceOption.skip:
+      return "Skip";
   }
 };
 

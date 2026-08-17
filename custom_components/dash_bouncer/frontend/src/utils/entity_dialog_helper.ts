@@ -1,6 +1,6 @@
 import { fireEvent } from "./fire_event";
 
-import type { DialogData } from "../types";
+import type { DialogData } from "../types/base";
 
 const loadDialog = () => import("../dialog");
 
@@ -11,3 +11,4 @@ export const openDialog = (element: HTMLElement, data: DialogData): void => {
     dialogParams: data,
   });
 };
+

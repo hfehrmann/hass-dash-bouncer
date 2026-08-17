@@ -1,7 +1,29 @@
-import type { Panel, UserConfig, BouncerUserConfig } from "../types";
-import { BounceOption } from "../types";
+import type { Panel, UserConfig } from "../types/base";
+import type { BouncerUserConfig } from "../types/backend";
+import { BounceOption } from "../types/bounceOption";
 
 export const bouncerConfigToConfig = (
+  config: BouncerUserConfig,
+  panels: Panel[],
+): UserConfig => {
+  const allowedPanels = new Set(config.allowed);
+  const blockedPanels = new Set(config.blocked);
+  const panelConfig: Record<string, BounceOption> = {};
+  for (const panel of panels) {
+    const url = panel.url_path;
+    if (allowedPanels.has(url)) {
+      panelConfig[url] = BounceOption.allow;
+    } else if (blockedPanels.has(url)) {
+      panelConfig[url] = BounceOption.block;
+    } else {
+      panelConfig[url] = BounceOption.default;
+    }
+  }
+
+  return { default: config.default_bounce, panels: panelConfig };
+};
+
+export const bouncerEntityConfigToConfig = (
   config: BouncerUserConfig,
   panels: Panel[],
 ): UserConfig => {
