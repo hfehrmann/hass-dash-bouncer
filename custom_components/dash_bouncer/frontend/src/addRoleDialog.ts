@@ -1,19 +1,71 @@
 import { LitElement, html, css, nothing } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
+import { customElement, property, state, query} from "lit/decorators.js";
 
 import { mdiClose } from "@mdi/js";
 
 import type { HomeAssistant } from "./hass/types";
+import { HaInput } from "./hass/types";
+
+import type { AddRoleDialogData, Panel, DialogEntity, DialogEntityConfig } from "./types/base";
+import type { BouncerConfig } from "./types/backend";
+
+import { BounceOption } from "./types/bounceOption";
+import { openDialog } from "./utils/entity_dialog_helper";
 
 @customElement("dash-bouncer-add-role-dialog")
 export class DashBouncerAddRoleDialog extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
 
   @state() private _open = false;
+  @state() private _valid = true;
+  @state() private panels: Panel[];
 
-  public showDialog(params: {}): void {
-    console.log("test");
+  @query("#role") private _input?: HaInput;
+
+  public showDialog(params: AddRoleDialogData): void {
     this._open = true;
+    this.panels = params.panels;
+  }
+
+  _panelsToDefaultConfig(panels: Panel[]): DialogEntityConfig {
+    const bounceConfig: Record<string, BounceOption> = {};
+
+    for (const panel of panels) {
+      bounceConfig[panel.url_path] = BounceOption.allow;
+    }
+
+    return { panels: bounceConfig };
+  }
+
+  _configureRole() {
+    const role = this._input.value;
+    if (role.length == 0) {
+      this._valid = false
+      return
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const panels: Panel[] = this.panels;
+
+    const entity: DialogEntity = { id: role, name: role };
+    const third_option = BounceOption.skip;
+    const config = this._panelsToDefaultConfig(panels);
+    const save = async (entity: DialogEntity, config: DialogEntityConfig) => {
+      return await this.hass.callApi<BouncerConfig>("GET", "dash_bouncer/config");
+      // const panels = config.panels
+      // const bouncerUserConfig = configToBouncerConfig({ panels });
+      // return await this.hass.callApi<BouncerConfig>(
+      //   "POST",
+      //   `dash_bouncer/config/role/${entity.id}`,
+      //   { ...bouncerUserConfig },
+      // );
+    };
+    openDialog(this, { entity, panels, third_option, config, save });
+    this.closeDialog();
+  }
+
+  _onChange() {
+    this._valid = this._input.value.length != 0
   }
 
   render() {
@@ -37,10 +89,17 @@ export class DashBouncerAddRoleDialog extends LitElement {
         </div>
         <div class="container">
           <ha-input
+            id="role"
             .label=${"Role name"}
-            .name=${"test"}
+            .invalid=${!this._valid}
+            validation-message=${"Non empty name required"}
+            @change=${this._onChange}
           ></ha-input>
-          <ha-button>Next</ha-button>
+          <ha-button
+            @click=${this._configureRole}
+          >
+              Next
+          </ha-button>
         </div>
       </ha-dialog>
       `;
@@ -48,6 +107,7 @@ export class DashBouncerAddRoleDialog extends LitElement {
 
   private closeDialog(): void {
     this._open = false
+    this._input.value = ""
   }
 
   static styles = css`

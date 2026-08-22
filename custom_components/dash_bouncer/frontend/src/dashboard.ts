@@ -10,8 +10,7 @@ import type { Panel, UserConfig, DialogEntity, DialogEntityConfig } from "./type
 import type { BouncerConfig } from "./types/backend";
 import { BounceOption } from "./types/bounceOption";
 
-import { openDialog } from "./utils/entity_dialog_helper";
-import { openAddRoleDialog } from "./utils/add_role_dialog_helper";
+import { openDialog, openAddRoleDialog } from "./utils/entity_dialog_helper";
 
 import { configToBouncerConfig, bouncerConfigToConfig } from "./utils/config_transformer";
 
@@ -86,7 +85,7 @@ export class DashBouncerDashboard extends LitElement {
     const panels: Panel[] = (ev.currentTarget as any).panels;
 
     window.addEventListener("dash-bouncer-new-config", this._newConfig);
-    openAddRoleDialog(this);
+    openAddRoleDialog(this, { panels });
   }
 
   // Can this fire multiple times??? test that case
@@ -163,6 +162,7 @@ export class DashBouncerDashboard extends LitElement {
                   </ha-list>
                 </ha-card>
                 <ha-button
+                  .panels=${panels}
                   @click=${this._openAddRole}
                 >
                     Add role

@@ -13,6 +13,10 @@ export interface UserConfig {
   panels: Record<string, BounceOption>;
 }
 
+export interface RoleConfig {
+  panels: Record<string, BounceOption>;
+}
+
 export interface DialogEntity {
   id: string;
   name: string;
@@ -30,5 +34,9 @@ export interface DialogData {
   third_option: BounceOption;
   config: DialogEntityConfig;
   save: DialogDataSaveOp;
+}
+
+export interface AddRoleDialogData {
+    panels: Panel[];
 }
 

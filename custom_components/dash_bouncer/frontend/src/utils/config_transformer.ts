@@ -1,5 +1,5 @@
-import type { Panel, UserConfig } from "../types/base";
-import type { BouncerUserConfig } from "../types/backend";
+import type { Panel, UserConfig, RoleConfig } from "../types/base";
+import type { BouncerUserConfig, BouncerRoleConfig } from "../types/backend";
 import { BounceOption } from "../types/bounceOption";
 
 export const bouncerConfigToConfig = (
@@ -59,4 +59,21 @@ export const configToBouncerConfig = (
   }
 
   return { default_bounce: config.default, allowed, blocked };
+};
+
+export const roleConfigToBouncerRoleConfig = (
+  config: RoleConfig,
+): BouncerRoleConfig => {
+  const allowed: string[] = [];
+  const blocked: string[] = [];
+
+  for (const [key, value] of Object.entries(config.panels)) {
+    if (value == BounceOption.allow) {
+      allowed.push(key);
+    } else if (value == BounceOption.block) {
+      blocked.push(key);
+    }
+  }
+
+  return { allowed, blocked };
 };
