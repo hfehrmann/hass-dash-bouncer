@@ -6,7 +6,7 @@ import { mdiClose } from "@mdi/js";
 import type { HomeAssistant } from "./hass/types";
 import { HaInput } from "./hass/types";
 
-import type { AddRoleDialogData, Panel, DialogEntity, DialogEntityConfig } from "./types/base";
+import type { AddRoleDialogData, Panel, DialogEntity, DialogEntityConfig, DialogDataSaveOp, DialogDataDeleteOp } from "./types/base";
 import type { BouncerConfig } from "./types/backend";
 
 import { BounceOption } from "./types/bounceOption";
@@ -19,22 +19,20 @@ export class DashBouncerAddRoleDialog extends LitElement {
   @state() private _open = false;
   @state() private _valid = true;
   @state() private panels: Panel[];
+  @state() private save: DialogDataSaveOp;
+  @state() private delete: DialogDataDeleteOp;
 
   @query("#role") private _input?: HaInput;
 
   public showDialog(params: AddRoleDialogData): void {
     this._open = true;
     this.panels = params.panels;
+    this.save = params.save;
+    this.delete = params.delete;
   }
 
   _panelsToDefaultConfig(panels: Panel[]): DialogEntityConfig {
-    const bounceConfig: Record<string, BounceOption> = {};
-
-    for (const panel of panels) {
-      bounceConfig[panel.url_path] = BounceOption.allow;
-    }
-
-    return { panels: bounceConfig };
+    return { panels: {} };
   }
 
   _configureRole() {
@@ -50,17 +48,9 @@ export class DashBouncerAddRoleDialog extends LitElement {
     const entity: DialogEntity = { id: role, name: role };
     const third_option = BounceOption.skip;
     const config = this._panelsToDefaultConfig(panels);
-    const save = async (entity: DialogEntity, config: DialogEntityConfig) => {
-      return await this.hass.callApi<BouncerConfig>("GET", "dash_bouncer/config");
-      // const panels = config.panels
-      // const bouncerUserConfig = configToBouncerConfig({ panels });
-      // return await this.hass.callApi<BouncerConfig>(
-      //   "POST",
-      //   `dash_bouncer/config/role/${entity.id}`,
-      //   { ...bouncerUserConfig },
-      // );
-    };
-    openDialog(this, { entity, panels, third_option, config, save });
+    const save = this.save;
+    const deleteOp = this.delete;
+    openDialog(this, { entity, panels, third_option, config, save, delete: deleteOp });
     this.closeDialog();
   }
 

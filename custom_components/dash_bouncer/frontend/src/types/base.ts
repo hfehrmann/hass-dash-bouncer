@@ -28,15 +28,19 @@ export interface DialogEntityConfig {
 }
 
 export type DialogDataSaveOp = (entity: DialogEntity, config: DialogEntityConfig) => Promise<BouncerConfig>;
+export type DialogDataDeleteOp = (entity: DialogEntity) => Promise<BouncerConfig>;
 export interface DialogData {
   entity: DialogEntity;
   panels: Panel[];
   third_option: BounceOption;
   config: DialogEntityConfig;
   save: DialogDataSaveOp;
+  delete?: DialogDataDeleteOp;
 }
 
 export interface AddRoleDialogData {
     panels: Panel[];
+    save: DialogDataSaveOp;
+    delete: DialogDataDeleteOp;
 }
 

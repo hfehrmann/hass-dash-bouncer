@@ -12,6 +12,7 @@ import { styles } from "./hass/styles";
 import type {
   DialogData,
   DialogDataSaveOp,
+  DialogDataDeleteOp,
   DialogEntity,
   DialogEntityConfig,
   Panel,
@@ -32,6 +33,7 @@ export class DashBouncerDialog extends LitElement {
   @state() private third_option: BounceOption;
   @state() private config: DialogEntityConfig;
   @state() private save: DialogDataSaveOp;
+  @state() private delete?: DialogDataDeleteOp;
   @state() private systemDefaultPanel: string;
   @state() private options: BounceOption[];
 
@@ -43,6 +45,7 @@ export class DashBouncerDialog extends LitElement {
     this.third_option = params.third_option;
     this.config = params.config;
     this.save = params.save;
+    this.delete = params.delete;
     this.systemDefaultPanel =
       this.hass.systemData?.default_panel ?? DEFAULT_PANEL;
     this._open = true;
@@ -98,6 +101,17 @@ export class DashBouncerDialog extends LitElement {
 
   private async _save() {
     const newConfig = await this.save(this.entity, this.config);
+    fireEvent(this, "dash-bouncer-new-config", { config: newConfig });
+    this._open = false;
+  }
+
+  private async _delete() {
+    const deleteOp = this.delete;
+    if (deleteOp == null) {
+      return;
+    }
+
+    const newConfig = await deleteOp(this.entity);
     fireEvent(this, "dash-bouncer-new-config", { config: newConfig });
     this._open = false;
   }
@@ -227,6 +241,18 @@ export class DashBouncerDialog extends LitElement {
         </div>
 
         <ha-dialog-footer slot="footer">
+          ${
+            this.delete != null
+            ? html`
+              <ha-button
+                slot="secondaryAction"
+                variant="danger"
+                @click=${this._delete}
+              >
+                Delete
+              </ha-button>`
+            : nothing
+          }
           <ha-button slot="primaryAction" @click=${this._save}>
             Save
           </ha-button>

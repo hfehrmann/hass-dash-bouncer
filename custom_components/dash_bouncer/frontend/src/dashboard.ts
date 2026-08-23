@@ -6,13 +6,13 @@ import type { HomeAssistant } from "./hass/types";
 import { styles } from "./hass/styles";
 
 import type { Person } from "./types/entities";
-import type { Panel, UserConfig, DialogEntity, DialogEntityConfig } from "./types/base";
+import type { Panel, UserConfig, DialogEntity, DialogEntityConfig, DialogDataSaveOp, DialogDataDeleteOp } from "./types/base";
 import type { BouncerConfig } from "./types/backend";
 import { BounceOption } from "./types/bounceOption";
 
 import { openDialog, openAddRoleDialog } from "./utils/entity_dialog_helper";
 
-import { configToBouncerConfig, bouncerConfigToConfig } from "./utils/config_transformer";
+import { configToBouncerConfig, bouncerConfigToConfig, roleConfigToBouncerRoleConfig } from "./utils/config_transformer";
 
 @customElement("dash-bouncer-dashboard")
 export class DashBouncerDashboard extends LitElement {
@@ -77,6 +77,28 @@ export class DashBouncerDashboard extends LitElement {
     openDialog(this, { entity, panels, third_option, config, save });
   }
 
+  private _getAddRoleSaveOp(): DialogDataSaveOp {
+    return async (entity: DialogEntity, config: DialogEntityConfig) => {
+      const panels = config.panels
+      const bouncerRoleConfig = roleConfigToBouncerRoleConfig({ panels });
+
+      return await this.hass.callApi<BouncerConfig>(
+        "POST",
+        `dash_bouncer/role/config/${entity.id}`,
+        { ...bouncerRoleConfig },
+      );
+    }
+  }
+
+  private _getRoleDeleteOp(): DialogDataDeleteOp {
+    return async (entity: DialogEntity) => {
+      return await this.hass.callApi<BouncerConfig>(
+        "DELETE",
+        `dash_bouncer/role/config/${entity.id}`,
+      );
+    }
+  }
+
   private _openAddRole(ev: MouseEvent) {
     if (ev.currentTarget === null) {
       return;
@@ -85,7 +107,9 @@ export class DashBouncerDashboard extends LitElement {
     const panels: Panel[] = (ev.currentTarget as any).panels;
 
     window.addEventListener("dash-bouncer-new-config", this._newConfig);
-    openAddRoleDialog(this, { panels });
+    const save = this._getAddRoleSaveOp();
+    const deleteOp = this._getRoleDeleteOp();
+    openAddRoleDialog(this, { panels, save, delete: deleteOp });
   }
 
   // Can this fire multiple times??? test that case
