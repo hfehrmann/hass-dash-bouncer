@@ -267,6 +267,7 @@ export class DashBouncerDialog extends LitElement {
       }
 
       table {
+        width: 100%;
         border-collapse: collapse;
       }
 
