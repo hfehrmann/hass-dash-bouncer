@@ -1,20 +1,7 @@
 import { LitElement, html, css } from "lit";
 import { customElement, property } from "lit/decorators.js";
 
-import { BounceOption } from './types/bounceOption';
-
-const optionText = (option: BounceOption): string => {
-  switch (option) {
-    case BounceOption.allow:
-      return "Allow";
-    case BounceOption.block:
-      return "Block";
-    case BounceOption.default:
-      return "Default";
-    case BounceOption.skip:
-      return "Skip";
-  }
-};
+import { BounceOption, bounceOption2string } from './types/bounceOption';
 
 @customElement("dash-bouncer-select")
 export class DashBouncerSelect extends LitElement {
@@ -37,7 +24,7 @@ export class DashBouncerSelect extends LitElement {
               .entry=${option}
               @click=${() => this._handleClick(option)}
             >
-              ${optionText(option)}
+              ${bounceOption2string(option)}
             </div>
           `;
         })}

@@ -60,7 +60,7 @@ export class DashBouncerDashboard extends LitElement {
     const panels: Panel[] = (ev.currentTarget as any).panels;
 
     const entity: DialogEntity = { id: person.user_id, name: person.name };
-    const third_option = BounceOption.allow;
+    const third_option = BounceOption.default;
     const config = this._userConfig(person, panels);
     const save = async (entity: DialogEntity, config: DialogEntityConfig) => {
       const def = config.default ?? BounceOption.allow;

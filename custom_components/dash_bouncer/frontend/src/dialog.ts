@@ -17,11 +17,10 @@ import type {
   Panel,
 } from "./types/base";
 import type { BouncerConfig } from "./types/backend";
-import { BounceOption } from './types/bounceOption';
+import { BounceOption, bounceOption2string } from './types/bounceOption';
 
 import { configToBouncerConfig } from "./utils/config_transformer";
 
-const OPTIONS = [BounceOption.allow, BounceOption.block, BounceOption.default];
 const DEFAULT_PANEL = "home";
 
 @customElement("dash-bouncer-dialog")
@@ -30,20 +29,25 @@ export class DashBouncerDialog extends LitElement {
 
   @state() private entity: DialogEntity;
   @state() private panels: Panel[];
+  @state() private third_option: BounceOption;
   @state() private config: DialogEntityConfig;
   @state() private save: DialogDataSaveOp;
   @state() private systemDefaultPanel: string;
+  @state() private options: BounceOption[];
 
   @state() private _open = false;
 
   public showDialog(params: DialogData): void {
     this.entity = params.entity;
     this.panels = params.panels;
+    this.third_option = params.third_option;
     this.config = params.config;
     this.save = params.save;
     this.systemDefaultPanel =
       this.hass.systemData?.default_panel ?? DEFAULT_PANEL;
     this._open = true;
+
+    this.options = [BounceOption.allow, BounceOption.block, this.third_option];
   }
 
   private _defaultSelect(event: CustomEvent): void {
@@ -55,7 +59,7 @@ export class DashBouncerDialog extends LitElement {
     const urlPath = (event.target as any).panel_url;
     const option: BounceOption = event.detail;
 
-    if (option == BounceOption.default) {
+    if (option == this.third_option) {
       const { [urlPath]: _, ...rest } = this.config.panels;
       this.config = {
         ...this.config,
@@ -75,7 +79,7 @@ export class DashBouncerDialog extends LitElement {
   }
 
   private _setTable(option: BounceOption) {
-    if (option == BounceOption.default) {
+    if (option == this.third_option) {
       this.config = {
         ...this.config,
         panels: {},
@@ -122,14 +126,18 @@ export class DashBouncerDialog extends LitElement {
           <h2><span class="dialog-header">${this.entity.name}</span></h2>
         </div>
 
-        <div class="configs">
-          <div>Default bounce</div>
-          <dash-bouncer-select
-            .selected=${this.config.default}
-            .options=${OPTIONS.filter((x) => x != BounceOption.default)}
-            @select=${this._defaultSelect}
-          ></dash-bouncer-select>
-        </div>
+        ${
+          this.config.default != null
+          ? html`<div class="configs">
+              <div>Default bounce</div>
+              <dash-bouncer-select
+                .selected=${this.config.default}
+                .options=${this.options.filter((x) => x != BounceOption.default)}
+                @select=${this._defaultSelect}
+              ></dash-bouncer-select>
+            </div>`
+          : nothing
+        }
 
         <div class="configs toggle">
           <div>Table toggle</div>
@@ -151,9 +159,9 @@ export class DashBouncerDialog extends LitElement {
             <ha-button
               size="small"
               appearance="filled"
-              @click=${() => this._setTable(BounceOption.default)}
+              @click=${() => this._setTable(this.third_option)}
             >
-              Default
+              ${bounceOption2string(this.third_option)}
             </ha-button>
           </div>
         </div>
@@ -181,7 +189,7 @@ export class DashBouncerDialog extends LitElement {
               ${this.panels.map((panel) => {
                 const isDefault = panel.url_path == this.systemDefaultPanel;
                 const selectedOption =
-                  this.config.panels[panel.url_path] ?? BounceOption.default;
+                  this.config.panels[panel.url_path] ?? this.third_option;
                 const isBlocked = selectedOption == BounceOption.block;
                 return html`
                   <tr class="tr-body ${isDefault && isBlocked ? "warn" : ""}">
@@ -206,7 +214,7 @@ export class DashBouncerDialog extends LitElement {
                     <td>
                       <dash-bouncer-select
                         .selected=${selectedOption}
-                        .options=${OPTIONS}
+                        .options=${this.options}
                         .panel_url=${panel.url_path}
                         @select=${this._panelSelect}
                       ></dash-bouncer-select>
