@@ -6,7 +6,7 @@ import { mdiClose } from "@mdi/js";
 import type { HomeAssistant } from "./hass/types";
 import { HaInput } from "./hass/types";
 
-import type { AddRoleDialogData, Panel, DialogEntity, DialogEntityConfig, DialogDataSaveOp, DialogDataDeleteOp } from "./types/base";
+import type { AddRoleDialogData, Panel, DialogEntity, DialogEntityConfig, DialogDataSaveOp } from "./types/base";
 import type { BouncerConfig } from "./types/backend";
 
 import { BounceOption } from "./types/bounceOption";
@@ -20,7 +20,6 @@ export class DashBouncerAddRoleDialog extends LitElement {
   @state() private _valid = true;
   @state() private panels: Panel[];
   @state() private save: DialogDataSaveOp;
-  @state() private delete: DialogDataDeleteOp;
 
   @query("#role") private _input?: HaInput;
 
@@ -28,7 +27,6 @@ export class DashBouncerAddRoleDialog extends LitElement {
     this._open = true;
     this.panels = params.panels;
     this.save = params.save;
-    this.delete = params.delete;
   }
 
   _panelsToDefaultConfig(panels: Panel[]): DialogEntityConfig {
@@ -49,8 +47,7 @@ export class DashBouncerAddRoleDialog extends LitElement {
     const third_option = BounceOption.skip;
     const config = this._panelsToDefaultConfig(panels);
     const save = this.save;
-    const deleteOp = this.delete;
-    openDialog(this, { entity, panels, third_option, config, save, delete: deleteOp });
+    openDialog(this, { entity, panels, third_option, config, save });
     this.closeDialog();
   }
 

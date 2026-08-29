@@ -41,6 +41,5 @@ export interface DialogData {
 export interface AddRoleDialogData {
     panels: Panel[];
     save: DialogDataSaveOp;
-    delete: DialogDataDeleteOp;
 }
 

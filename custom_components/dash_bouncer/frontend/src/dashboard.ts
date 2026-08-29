@@ -12,7 +12,7 @@ import { BounceOption } from "./types/bounceOption";
 
 import { openDialog, openAddRoleDialog } from "./utils/entity_dialog_helper";
 
-import { configToBouncerConfig, bouncerConfigToConfig, roleConfigToBouncerRoleConfig } from "./utils/config_transformer";
+import { configToBouncerConfig, bouncerConfigToUserConfig, bouncerConfigToRoleConfig, roleConfigToBouncerRoleConfig } from "./utils/config_transformer";
 
 @customElement("dash-bouncer-dashboard")
 export class DashBouncerDashboard extends LitElement {
@@ -47,7 +47,17 @@ export class DashBouncerDashboard extends LitElement {
       return { default: BounceOption.allow, panels: {} };
     }
 
-    return bouncerConfigToConfig(config, panels);
+    return bouncerConfigToUserConfig(config, panels);
+  }
+
+  private _roleConfig(role: string, panels: Panel[]): DialogEntityConfig {
+    const config = this.config?.roles[role];
+    if (!config) {
+      return { panels: {} };
+    }
+
+    return bouncerConfigToRoleConfig(config, panels);
+
   }
 
   private _openEditPerson(ev: MouseEvent) {
@@ -108,8 +118,26 @@ export class DashBouncerDashboard extends LitElement {
 
     window.addEventListener("dash-bouncer-new-config", this._newConfig);
     const save = this._getAddRoleSaveOp();
+    openAddRoleDialog(this, { panels, save });
+  }
+
+  private _openEditRole(ev: MouseEvent) {
+    if (ev.currentTarget === null) {
+      return;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const role: string = (ev.currentTarget as any).data_role;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const panels: Panel[] = (ev.currentTarget as any).panels;
+
+    const entity: DialogEntity = { id: role, name: role };
+    const third_option = BounceOption.skip;
+    const config = this._roleConfig(role, panels);
+    const save = this._getAddRoleSaveOp();
     const deleteOp = this._getRoleDeleteOp();
-    openAddRoleDialog(this, { panels, save, delete: deleteOp });
+    window.addEventListener("dash-bouncer-new-config", this._newConfig);
+    openDialog(this, { entity, panels, third_option, config, save, delete: deleteOp });
   }
 
   // Can this fire multiple times??? test that case
@@ -118,6 +146,12 @@ export class DashBouncerDashboard extends LitElement {
     this.config = { ...config };
     window.removeEventListener("dash-bouncer-new-config", this._newConfig);
   };
+
+  private _getRoles(): string[] {
+    const roles = Object.keys(this.config.roles ?? {});
+    roles.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+    return roles;
+  }
 
   render() {
     const darkMode = this.hass.themes.darkMode;
@@ -172,14 +206,14 @@ export class DashBouncerDashboard extends LitElement {
               <div class="elements">
                 <ha-card outlined>
                   <ha-list>
-                    ${[people[0]].map(
-                      (person) => html`
+                    ${this._getRoles().map(
+                      (role) => html`
                         <ha-list-item
-                          @click=${this._openEditPerson}
-                          .person=${person}
+                          @click=${this._openEditRole}
+                          .data_role=${role}
                           .panels=${panels}
                         >
-                          ${person.name}
+                          ${role}
                         </ha-list-item>
                       `,
                     )}

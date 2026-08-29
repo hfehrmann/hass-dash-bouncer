@@ -2,7 +2,7 @@ import type { Panel, UserConfig, RoleConfig } from "../types/base";
 import type { BouncerUserConfig, BouncerRoleConfig } from "../types/backend";
 import { BounceOption } from "../types/bounceOption";
 
-export const bouncerConfigToConfig = (
+export const bouncerConfigToUserConfig = (
   config: BouncerUserConfig,
   panels: Panel[],
 ): UserConfig => {
@@ -23,10 +23,10 @@ export const bouncerConfigToConfig = (
   return { default: config.default_bounce, panels: panelConfig };
 };
 
-export const bouncerEntityConfigToConfig = (
-  config: BouncerUserConfig,
+export const bouncerConfigToRoleConfig = (
+  config: BouncerRoleConfig,
   panels: Panel[],
-): UserConfig => {
+): RoleConfig => {
   const allowedPanels = new Set(config.allowed);
   const blockedPanels = new Set(config.blocked);
   const panelConfig: Record<string, BounceOption> = {};
@@ -37,11 +37,11 @@ export const bouncerEntityConfigToConfig = (
     } else if (blockedPanels.has(url)) {
       panelConfig[url] = BounceOption.block;
     } else {
-      panelConfig[url] = BounceOption.default;
+      panelConfig[url] = BounceOption.skip;
     }
   }
 
-  return { default: config.default_bounce, panels: panelConfig };
+  return { panels: panelConfig };
 };
 
 export const configToBouncerConfig = (
