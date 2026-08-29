@@ -17,6 +17,7 @@ from .middleware import patch_panel_list_ws
 from .views import (
     DashBouncerConfigView,
     DashBouncerPanelsView,
+    DashBouncerRoleConfigView,
     DashBouncerUserConfigView,
     DashBouncerUsersView,
 )
@@ -92,5 +93,6 @@ async def _async_register_api_call(hass: HomeAssistant) -> None:
     hass.http.register_view(DashBouncerPanelsView())
     hass.http.register_view(DashBouncerUsersView())
     hass.http.register_view(DashBouncerConfigView())
+    hass.http.register_view(DashBouncerRoleConfigView())
     hass.http.register_view(DashBouncerUserConfigView())
 
