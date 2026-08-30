@@ -43,11 +43,12 @@ export class DashBouncerAddRoleDialog extends LitElement {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const panels: Panel[] = this.panels;
 
+    const title_kind = "Role";
     const entity: DialogEntity = { id: role, name: role };
     const third_option = BounceOption.skip;
     const config = this._panelsToDefaultConfig(panels);
     const save = this.save;
-    openDialog(this, { entity, panels, third_option, config, save });
+    openDialog(this, { title_kind, entity, panels, third_option, config, save });
     this.closeDialog();
   }
 

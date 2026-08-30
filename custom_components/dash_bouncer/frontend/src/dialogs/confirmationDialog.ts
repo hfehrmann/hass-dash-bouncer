@@ -33,6 +33,7 @@ export class DashBouncerConfirmationDialog extends LitElement {
       <ha-dialog
         class="dashb-main ${uiMode}"
         header-title="Delete role"
+        type="alert"
         .heading=${true}
         .open=${this._open}
         @closed=${this.closeDialog}

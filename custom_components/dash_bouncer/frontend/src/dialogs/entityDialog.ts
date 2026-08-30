@@ -29,6 +29,7 @@ const DEFAULT_PANEL = "home";
 export class DashBouncerEntityDialog extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
 
+  @state() private title_kind: string;
   @state() private entity: DialogEntity;
   @state() private panels: Panel[];
   @state() private third_option: BounceOption;
@@ -41,6 +42,7 @@ export class DashBouncerEntityDialog extends LitElement {
   @state() private _open = false;
 
   public showDialog(params: EntityDialogData): void {
+    this.title_kind = params.title_kind;
     this.entity = params.entity;
     this.panels = params.panels;
     this.third_option = params.third_option;
@@ -128,18 +130,19 @@ export class DashBouncerEntityDialog extends LitElement {
 
     const darkMode = this.hass.themes.darkMode;
     const uiMode = darkMode ? "dark" : "light";
+    const title = `${this.title_kind}: ${this.entity.name}`;
 
     return html`
       <ha-dialog
         class="dashb-main ${uiMode}"
-        header-title=${this.entity.name}
+        header-title=${title}
         .heading=${true}
         .open=${this._open}
         @closed=${this.closeDialog}
       >
         ${
           this.config.default != null
-          ? html`<div class="configs">
+          ? html`<div class="configs default">
               <div>Default bounce</div>
               <dash-bouncer-select
                 .selected=${this.config.default}
@@ -150,7 +153,7 @@ export class DashBouncerEntityDialog extends LitElement {
           : nothing
         }
 
-        <div class="configs toggle">
+        <div class="configs">
           <div>Table toggle</div>
           <div class="actions">
             <ha-button
@@ -280,8 +283,8 @@ export class DashBouncerEntityDialog extends LitElement {
         justify-content: space-between;
       }
 
-      .configs.toggle {
-        margin-top: 18px;
+      .configs.default {
+        margin-bottom: 18px;
       }
 
       .actions > ha-button {

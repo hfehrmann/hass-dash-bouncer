@@ -69,6 +69,7 @@ export class DashBouncerDashboard extends LitElement {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const panels: Panel[] = (ev.currentTarget as any).panels;
 
+    const title_kind = "User";
     const entity: DialogEntity = { id: person.user_id, name: person.name };
     const third_option = BounceOption.default;
     const config = this._userConfig(person, panels);
@@ -84,7 +85,7 @@ export class DashBouncerDashboard extends LitElement {
       );
     };
     window.addEventListener("dash-bouncer-new-config", this._newConfig);
-    openDialog(this, { entity, panels, third_option, config, save });
+    openDialog(this, { title_kind, entity, panels, third_option, config, save });
   }
 
   private _getAddRoleSaveOp(): DialogDataSaveOp {
@@ -131,13 +132,14 @@ export class DashBouncerDashboard extends LitElement {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const panels: Panel[] = (ev.currentTarget as any).panels;
 
+    const title_kind = "Role";
     const entity: DialogEntity = { id: role, name: role };
     const third_option = BounceOption.skip;
     const config = this._roleConfig(role, panels);
     const save = this._getAddRoleSaveOp();
     const deleteOp = this._getRoleDeleteOp();
     window.addEventListener("dash-bouncer-new-config", this._newConfig);
-    openDialog(this, { entity, panels, third_option, config, save, delete: deleteOp });
+    openDialog(this, { title_kind, entity, panels, third_option, config, save, delete: deleteOp });
   }
 
   // Can this fire multiple times??? test that case

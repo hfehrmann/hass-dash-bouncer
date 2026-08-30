@@ -30,6 +30,7 @@ export interface DialogEntityConfig {
 export type DialogDataSaveOp = (entity: DialogEntity, config: DialogEntityConfig) => Promise<BouncerConfig>;
 export type DialogDataDeleteOp = (entity: DialogEntity) => Promise<BouncerConfig>;
 export interface EntityDialogData {
+  title_kind: string;
   entity: DialogEntity;
   panels: Panel[];
   third_option: BounceOption;
