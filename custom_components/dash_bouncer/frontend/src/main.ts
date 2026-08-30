@@ -1,4 +1,4 @@
 export { DashBouncerDashboard } from "./dashboard";
-export { DashBouncerDialog } from "./dialog";
-export { DashBouncerAddRoleDialog } from "./addRoleDialog";
+export { DashBouncerEntityDialog } from "./dialogs/entityDialog";
+export { DashBouncerAddRoleDialog } from "./dialogs/addRoleDialog";
 export { DashBouncerSelect } from "./select";

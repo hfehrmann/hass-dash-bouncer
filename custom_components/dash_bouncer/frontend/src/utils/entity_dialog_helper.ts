@@ -1,13 +1,13 @@
 import { fireEvent } from "./fire_event";
 
-import type { DialogData, AddRoleDialogData } from "../types/base";
+import type { EntityDialogData, AddRoleDialogData } from "../types/base";
 
-const loadDialog = () => import("../dialog");
-const loadAddRoleDialog = () => import("../addRoleDialog");
+const loadDialog = () => import("../dialogs/entityDialog");
+const loadAddRoleDialog = () => import("../dialogs/addRoleDialog");
 
-export const openDialog = (element: HTMLElement, data: DialogData): void => {
+export const openDialog = (element: HTMLElement, data: EntityDialogData): void => {
   fireEvent(element, "show-dialog", {
-    dialogTag: "dash-bouncer-dialog",
+    dialogTag: "dash-bouncer-entity-dialog",
     dialogImport: loadDialog,
     dialogParams: data,
   });

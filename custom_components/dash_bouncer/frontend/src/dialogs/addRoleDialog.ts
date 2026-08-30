@@ -3,14 +3,14 @@ import { customElement, property, state, query} from "lit/decorators.js";
 
 import { mdiClose } from "@mdi/js";
 
-import type { HomeAssistant } from "./hass/types";
-import { HaInput } from "./hass/types";
+import type { HomeAssistant } from "../hass/types";
+import { HaInput } from "../hass/types";
 
-import type { AddRoleDialogData, Panel, DialogEntity, DialogEntityConfig, DialogDataSaveOp } from "./types/base";
-import type { BouncerConfig } from "./types/backend";
+import type { AddRoleDialogData, Panel, DialogEntity, DialogEntityConfig, DialogDataSaveOp } from "../types/base";
+import type { BouncerConfig } from "../types/backend";
 
-import { BounceOption } from "./types/bounceOption";
-import { openDialog } from "./utils/entity_dialog_helper";
+import { BounceOption } from "../types/bounceOption";
+import { openDialog } from "../utils/entity_dialog_helper";
 
 @customElement("dash-bouncer-add-role-dialog")
 export class DashBouncerAddRoleDialog extends LitElement {

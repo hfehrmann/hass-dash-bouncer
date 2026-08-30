@@ -3,29 +3,29 @@ import { customElement, property, state } from "lit/decorators.js";
 
 import { mdiClose, mdiCheck, mdiCancel, mdiHomeCircleOutline } from "@mdi/js";
 
-import { fireEvent } from "./utils/fire_event";
+import { fireEvent } from "../utils/fire_event";
 
-import type { HomeAssistant } from "./hass/types";
+import type { HomeAssistant } from "../hass/types";
 
-import { styles } from "./hass/styles";
+import { styles } from "../hass/styles";
 
 import type {
-  DialogData,
+  EntityDialogData,
   DialogDataSaveOp,
   DialogDataDeleteOp,
   DialogEntity,
   DialogEntityConfig,
   Panel,
-} from "./types/base";
-import type { BouncerConfig } from "./types/backend";
-import { BounceOption, bounceOption2string } from './types/bounceOption';
+} from "../types/base";
+import type { BouncerConfig } from "../types/backend";
+import { BounceOption, bounceOption2string } from '../types/bounceOption';
 
-import { configToBouncerConfig } from "./utils/config_transformer";
+import { configToBouncerConfig } from "../utils/config_transformer";
 
 const DEFAULT_PANEL = "home";
 
-@customElement("dash-bouncer-dialog")
-export class DashBouncerDialog extends LitElement {
+@customElement("dash-bouncer-entity-dialog")
+export class DashBouncerEntityDialog extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
 
   @state() private entity: DialogEntity;
@@ -39,7 +39,7 @@ export class DashBouncerDialog extends LitElement {
 
   @state() private _open = false;
 
-  public showDialog(params: DialogData): void {
+  public showDialog(params: EntityDialogData): void {
     this.entity = params.entity;
     this.panels = params.panels;
     this.third_option = params.third_option;
@@ -343,6 +343,6 @@ export class DashBouncerDialog extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "dash-bouncer-dialog": DashBouncerDialog;
+    "dash-bouncer-entity-dialog": DashBouncerEntityDialog;
   }
 }
