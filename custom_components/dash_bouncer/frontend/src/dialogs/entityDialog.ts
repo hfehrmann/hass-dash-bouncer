@@ -20,6 +20,7 @@ import type {
 import type { BouncerConfig } from "../types/backend";
 import { BounceOption, bounceOption2string } from '../types/bounceOption';
 
+import { openConfirmationDialog } from "../utils/entity_dialog_helper";
 import { configToBouncerConfig } from "../utils/config_transformer";
 
 const DEFAULT_PANEL = "home";
@@ -111,9 +112,13 @@ export class DashBouncerEntityDialog extends LitElement {
       return;
     }
 
-    const newConfig = await deleteOp(this.entity);
-    fireEvent(this, "dash-bouncer-new-config", { config: newConfig });
-    this._open = false;
+    const deleteConfirmation = async () => {
+      const newConfig = await deleteOp(this.entity);
+      fireEvent(this, "dash-bouncer-new-config", { config: newConfig });
+      this._open = false;
+    };
+    const text = `Are you sure you want to delete "${this.entity.name}" role?`;
+    openConfirmationDialog(this, { text, delete: deleteConfirmation });
   }
 
   render() {
@@ -127,19 +132,11 @@ export class DashBouncerEntityDialog extends LitElement {
     return html`
       <ha-dialog
         class="dashb-main ${uiMode}"
+        header-title=${this.entity.name}
         .heading=${true}
         .open=${this._open}
         @closed=${this.closeDialog}
       >
-        <div slot="heading" class="header_title">
-          <ha-icon-button
-            dialogAction="cancel"
-            .path=${mdiClose}
-            class="header_button"
-          ></ha-icon-button>
-          <h2><span class="dialog-header">${this.entity.name}</span></h2>
-        </div>
-
         ${
           this.config.default != null
           ? html`<div class="configs">

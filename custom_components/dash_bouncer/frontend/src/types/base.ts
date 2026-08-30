@@ -43,3 +43,9 @@ export interface AddRoleDialogData {
     save: DialogDataSaveOp;
 }
 
+export type ConfirmationDialogDeleteOp = () => Promise<void>;
+export interface ConfirmationDialogData {
+    text: string;
+    delete: ConfirmationDialogDeleteOp;
+}
+
