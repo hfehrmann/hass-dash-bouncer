@@ -205,4 +205,31 @@ class DashBouncerRoleConfigView(HomeAssistantView, DashBouncerConfigSaveableMixi
 
         return None
 
+    async def delete(self, request: web.Request, role_id: str) -> web.Response:
+        """Delete role."""
+        hass = request.app["hass"]
+        user = request["hass_user"]
+
+        if not user.is_admin:
+            return self.json({
+                "error": "Admin access required",
+                "message": "Only administrators can access config information",
+                "redirect_url": "/"
+            }, status_code=403)
+
+        try:
+            config = cast("Config | None", hass.data.get(DOMAIN))
+
+            if config is None:
+                config = Config({})
+
+            new_config = Config(users=config.users.copy(), roles=config.roles.copy())
+            new_config.roles.pop(role_id, None)
+
+            return await self.save_and_send_config(hass, new_config)
+        except Exception as e:
+            _LOGGER.exception("Error writting the new config")
+            return self.json({"error": str(e)}, status_code=500)
+
+        return None
 

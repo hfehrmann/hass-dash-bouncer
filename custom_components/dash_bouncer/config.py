@@ -131,40 +131,40 @@ class Config:
             _LOGGER.warning("No users in config data. Allowing everyone.")
             return None
 
-        data = {}
-        error_users = set()
+        users_data = {}
+        user_errors = set()
         for key, user_data in users.items():
             try:
-                data[key] = UserConfig.loads(user_data)
+                users_data[key] = UserConfig.loads(user_data)
             except ValueError:
-                error_users.add(key)
+                user_errors.add(key)
 
-        if error_users:
+        if user_errors:
             _LOGGER.warning(
                 "Invalid user configs for: %s. No restrictions applied to them.",
-                ", ".join([f"'{u}'" for u in error_users])
+                ", ".join([f"'{u}'" for u in user_errors])
             )
 
         roles = data.get("roles", {})
-        data_roles = {}
-        error_roles = set()
+        roles_data = {}
+        role_errors = set()
         if isinstance(roles, dict):
             for key, role_data in roles.items():
                 try:
-                    data_roles[key] = RoleConfig.loads(role_data)
+                    roles_data[key] = RoleConfig.loads(role_data)
                 except ValueError:
-                    error_roles.add(key)
+                    role_errors.add(key)
 
         else:
             _LOGGER.warning("Bad roles data. No role configured")
 
-        if error_users:
+        if role_errors:
             _LOGGER.warning(
                 "Invalid role configs for: %s. Skippig them from the policies.",
-                ", ".join([f"'{u}'" for u in error_roles])
+                ", ".join([f"'{u}'" for u in role_errors])
             )
 
-        return cls(data, data_roles)
+        return cls(users_data, roles_data)
 
     def dump(self) -> dict[str, Any]:
         """Dump object into dict. Ready for serialization."""
