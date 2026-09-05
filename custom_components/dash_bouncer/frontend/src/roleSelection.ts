@@ -1,14 +1,23 @@
 import { LitElement, html, css } from "lit";
 import { customElement, property } from "lit/decorators.js";
 
-import { mdiChevronDown, mdiDragHorizontalVariant } from '@mdi/js';
+import { mdiCloseBox, mdiChevronDown, mdiDragHorizontalVariant } from '@mdi/js';
 
-import { fireEvent } from "./utils/fire_event";
+import { fireEvent,  HASSDomEvent } from "./utils/fire_event";
 
 import type { HaDropdownSelectEvent } from "./hass/types";
 
 export interface DashBouncerRoleSelectionData {
   updated_roles: string[];
+}
+
+declare global {
+  interface HASSDomEvents {
+    "item-moved": {
+      oldIndex: number;
+      newIndex: number;
+    };
+  }
 }
 
 @customElement("dash-bouncer-role-selection")
@@ -29,6 +38,17 @@ export class DashBouncerRoleSelection extends LitElement {
     const updated_roles = [...this.selectedRoles];
     const [moved] = updated_roles.splice(oldIndex, 1);
     updated_roles.splice(newIndex, 0, moved);
+    fireEvent(this, "dashb-updated-roles", { updated_roles })
+  }
+
+  private _handleDelete(ev: Event) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const role: string = (ev.currentTarget as any).value;
+    const updated_roles = [...this.selectedRoles];
+    const index = updated_roles.indexOf(role);
+    if (index != -1) {
+      updated_roles.splice(index, 1);
+    }
     fireEvent(this, "dashb-updated-roles", { updated_roles })
   }
 
@@ -66,15 +86,20 @@ export class DashBouncerRoleSelection extends LitElement {
       <div>
         <div>Roles</div>
         <ha-sortable handle-selector=".handle" @item-moved=${this._handleMoved}>
-          <div>
+          <div class="roles">
             ${this.selectedRoles.map((role) => html`
-              <div>
+              <div class="role-item">
+                <span class="delete" .value=${role} @click=${this._handleDelete}>
+                  <ha-svg-icon
+                    .path=${mdiCloseBox}
+                  ></ha-svg-icon>
+                </span>
                 <span class="handle">
                   <ha-svg-icon
                     .path=${mdiDragHorizontalVariant}
                   ></ha-svg-icon>
                 </span>
-                <span>${role}</span>
+                <span class="value">${role}</span>
               </div>
             `)}
           </div>
@@ -88,6 +113,25 @@ export class DashBouncerRoleSelection extends LitElement {
   static styles = css`
     div ha-select {
       --ha-select-height: 10px;
+    }
+
+    .roles {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .role-item {
+      height: 40px;
+      display: flex;
+      align-items: center;
+    }
+
+    .delete ha-svg-icon {
+      height: 18px;
+    }
+
+    .role-item .value {
+      margin-left: 5px;
     }
   `;
 }
