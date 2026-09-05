@@ -1,7 +1,7 @@
 import { LitElement, html, css } from "lit";
 import { customElement, property } from "lit/decorators.js";
 
-import { mdiChevronDown } from '@mdi/js';
+import { mdiChevronDown, mdiDragHorizontalVariant } from '@mdi/js';
 
 import { fireEvent } from "./utils/fire_event";
 
@@ -20,6 +20,15 @@ export class DashBouncerRoleSelection extends LitElement {
   private _handleSelection(e: HaDropdownSelectEvent) {
     const source = e.detail.item.value;
     const updated_roles = [...this.selectedRoles, source];
+    fireEvent(this, "dashb-updated-roles", { updated_roles })
+  }
+
+  private _handleMoved(ev: HASSDomEvent<HASSDomEvents["item-moved"]>) {
+    ev.stopPropagation();
+    const { oldIndex, newIndex } = ev.detail;
+    const updated_roles = [...this.selectedRoles];
+    const [moved] = updated_roles.splice(oldIndex, 1);
+    updated_roles.splice(newIndex, 0, moved);
     fireEvent(this, "dashb-updated-roles", { updated_roles })
   }
 
@@ -56,10 +65,19 @@ export class DashBouncerRoleSelection extends LitElement {
     return html`
       <div>
         <div>Roles</div>
-        <ha-sortable>
-          ${this.selectedRoles.map((role) => html`
-            <div>${role}</div>
-          `)}
+        <ha-sortable handle-selector=".handle" @item-moved=${this._handleMoved}>
+          <div>
+            ${this.selectedRoles.map((role) => html`
+              <div>
+                <span class="handle">
+                  <ha-svg-icon
+                    .path=${mdiDragHorizontalVariant}
+                  ></ha-svg-icon>
+                </span>
+                <span>${role}</span>
+              </div>
+            `)}
+          </div>
         </ha-sortable>
 
         ${this.roleSelection()}
