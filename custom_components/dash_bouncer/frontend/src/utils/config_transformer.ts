@@ -20,10 +20,34 @@ export const bouncerConfigToUserConfig = (
     }
   }
 
-  return { default: config.default_bounce, panels: panelConfig };
+  const roles = config.roles ?? [];
+  return { default: config.default_bounce, roles, panels: panelConfig };
 };
 
-export const bouncerConfigToRoleConfig = (
+export const allRolesBouncerRoleConfigToRoleConfig = (
+  role_map_config: Record<string, BouncerRoleConfig>,
+  panels: Panel[],
+): Record<string, RoleConfig> => {
+  const result: Record<string, RoleConfig> = {};
+  for (const [key, config] of Object.entries(role_map_config)) {
+    const allowedPanels = new Set(config.allowed);
+    const blockedPanels = new Set(config.blocked);
+    const panelConfig: Record<string, BounceOption> = {};
+    for (const panel of panels) {
+      const url = panel.url_path;
+      if (allowedPanels.has(url)) {
+        panelConfig[url] = BounceOption.allow;
+      } else if (blockedPanels.has(url)) {
+        panelConfig[url] = BounceOption.block;
+      }
+    }
+    result[key] = { panels: panelConfig };
+  }
+
+  return result;
+};
+
+export const bouncerRoleConfigToRoleConfig = (
   config: BouncerRoleConfig,
   panels: Panel[],
 ): RoleConfig => {
@@ -58,7 +82,7 @@ export const configToBouncerConfig = (
     }
   }
 
-  return { default_bounce: config.default, allowed, blocked };
+  return { default_bounce: config.default, roles: config.roles, allowed, blocked };
 };
 
 export const roleConfigToBouncerRoleConfig = (

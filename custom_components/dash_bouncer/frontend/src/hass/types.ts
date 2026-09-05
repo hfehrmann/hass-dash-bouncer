@@ -21,6 +21,10 @@ export class HaInput {
   value: string;
 }
 
+export class HaDropdownSelectEvent {
+    detail: { item: { value: string } };
+}
+
 declare global {
   interface HASSDomEvents {
     "show-dialog": ShowDialogParams<unknown>;

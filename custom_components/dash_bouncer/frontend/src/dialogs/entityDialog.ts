@@ -4,6 +4,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import { mdiClose, mdiCheck, mdiCancel, mdiHomeCircleOutline } from "@mdi/js";
 
 import { fireEvent } from "../utils/fire_event";
+import type { HASSDomEvent } from "../utils/fire_event";
 
 import type { HomeAssistant } from "../hass/types";
 
@@ -16,12 +17,15 @@ import type {
   DialogEntity,
   DialogEntityConfig,
   Panel,
+  RoleConfig,
 } from "../types/base";
 import type { BouncerConfig } from "../types/backend";
 import { BounceOption, bounceOption2string } from '../types/bounceOption';
 
 import { openConfirmationDialog } from "../utils/entity_dialog_helper";
+
 import { configToBouncerConfig } from "../utils/config_transformer";
+import type { DashBouncerRoleSelectionData } from "../roleSelection";
 
 const DEFAULT_PANEL = "home";
 
@@ -34,6 +38,7 @@ export class DashBouncerEntityDialog extends LitElement {
   @state() private panels: Panel[];
   @state() private third_option: BounceOption;
   @state() private config: DialogEntityConfig;
+  @state() private role_bounce_map?: Record<string, RoleConfig>;
   @state() private save: DialogDataSaveOp;
   @state() private delete?: DialogDataDeleteOp;
   @state() private systemDefaultPanel: string;
@@ -47,6 +52,7 @@ export class DashBouncerEntityDialog extends LitElement {
     this.panels = params.panels;
     this.third_option = params.third_option;
     this.config = params.config;
+    this.role_bounce_map = params.role_bounce_map;
     this.save = params.save;
     this.delete = params.delete;
     this.systemDefaultPanel =
@@ -123,6 +129,35 @@ export class DashBouncerEntityDialog extends LitElement {
     openConfirmationDialog(this, { text, delete: deleteConfirmation });
   }
 
+  private _handleRoleUpdate(ev: HASSDomEvent<DashBouncerRoleSelectionData>) {
+    const updatedRoles = ev.detail.updated_roles;
+    this.config = {
+      ...this.config,
+      roles: updatedRoles,
+    };
+  }
+
+  private roleComponent() {
+    const roles = this.config.roles;
+    if (roles == null) {
+      return nothing;
+    }
+
+    const role_map = this.role_bounce_map ?? {};
+    const allRoles = Object.keys(role_map);
+    const availableRoles = allRoles.filter((e) => !roles.includes(e))
+    availableRoles.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+
+    return html`
+      <dash-bouncer-role-selection
+        .selectedRoles=${roles}
+        .availableRoles=${availableRoles}
+        @dashb-updated-roles=${this._handleRoleUpdate}
+      >
+      </dash-bouncer-role-selection>
+    `;
+  }
+
   render() {
     if (!this.entity || !this.panels || !this.config) {
       return nothing;
@@ -179,6 +214,8 @@ export class DashBouncerEntityDialog extends LitElement {
             </ha-button>
           </div>
         </div>
+
+        ${this.roleComponent()}
 
         <div class="disclaimer">
           Dashboard marked with

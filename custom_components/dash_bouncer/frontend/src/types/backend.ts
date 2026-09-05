@@ -2,6 +2,7 @@ import { BounceOption } from './bounceOption';
 
 export interface BouncerUserConfig {
   default_bounce: BounceOption;
+  roles?: string[];
   allowed?: string[];
   blocked?: string[];
 }

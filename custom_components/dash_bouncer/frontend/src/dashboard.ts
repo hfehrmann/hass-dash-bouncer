@@ -6,13 +6,13 @@ import type { HomeAssistant } from "./hass/types";
 import { styles } from "./hass/styles";
 
 import type { Person } from "./types/entities";
-import type { Panel, UserConfig, DialogEntity, DialogEntityConfig, DialogDataSaveOp, DialogDataDeleteOp } from "./types/base";
+import type { Panel, UserConfig, DialogEntity, DialogEntityConfig, DialogDataSaveOp, DialogDataDeleteOp, RoleConfig } from "./types/base";
 import type { BouncerConfig } from "./types/backend";
 import { BounceOption } from "./types/bounceOption";
 
 import { openDialog, openAddRoleDialog } from "./utils/entity_dialog_helper";
 
-import { configToBouncerConfig, bouncerConfigToUserConfig, bouncerConfigToRoleConfig, roleConfigToBouncerRoleConfig } from "./utils/config_transformer";
+import { configToBouncerConfig, bouncerConfigToUserConfig, bouncerRoleConfigToRoleConfig, roleConfigToBouncerRoleConfig, allRolesBouncerRoleConfigToRoleConfig } from "./utils/config_transformer";
 
 @customElement("dash-bouncer-dashboard")
 export class DashBouncerDashboard extends LitElement {
@@ -50,14 +50,22 @@ export class DashBouncerDashboard extends LitElement {
     return bouncerConfigToUserConfig(config, panels);
   }
 
+  private _allRoleConfig(panels: Panel[]): Record<string, RoleConfig> {
+    const config = this.config?.roles;
+    if (!config) {
+      return {};
+    }
+
+    return allRolesBouncerRoleConfigToRoleConfig(config, panels);
+  }
+
   private _roleConfig(role: string, panels: Panel[]): DialogEntityConfig {
     const config = this.config?.roles[role];
     if (!config) {
       return { panels: {} };
     }
 
-    return bouncerConfigToRoleConfig(config, panels);
-
+    return bouncerRoleConfigToRoleConfig(config, panels);
   }
 
   private _openEditPerson(ev: MouseEvent) {
@@ -73,10 +81,12 @@ export class DashBouncerDashboard extends LitElement {
     const entity: DialogEntity = { id: person.user_id, name: person.name };
     const third_option = BounceOption.default;
     const config = this._userConfig(person, panels);
+    const role_bounce_map = this._allRoleConfig(panels);
     const save = async (entity: DialogEntity, config: DialogEntityConfig) => {
       const def = config.default ?? BounceOption.allow;
       const panels = config.panels
-      const bouncerUserConfig = configToBouncerConfig({ default: def, panels });
+      const roles = config.roles ?? [];
+      const bouncerUserConfig = configToBouncerConfig({ default: def, roles, panels });
 
       return await this.hass.callApi<BouncerConfig>(
         "POST",
@@ -85,7 +95,7 @@ export class DashBouncerDashboard extends LitElement {
       );
     };
     window.addEventListener("dash-bouncer-new-config", this._newConfig);
-    openDialog(this, { title_kind, entity, panels, third_option, config, save });
+    openDialog(this, { title_kind, entity, panels, role_bounce_map, third_option, config, save });
   }
 
   private _getAddRoleSaveOp(): DialogDataSaveOp {
