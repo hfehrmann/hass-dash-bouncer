@@ -173,9 +173,9 @@ export class DashBouncerEntityDialog extends LitElement {
           <thead>
             <tr>
               <th class="left">Name (URL)</th>
-              <th>Visible</th>
-              <th>Admin</th>
-              <th>Bounce</th>
+              <th class="icon">Visible</th>
+              <th class="icon">Admin</th>
+              <th class="select">Bounce</th>
             </tr>
           </thead>
           <tbody>
@@ -204,7 +204,7 @@ export class DashBouncerEntityDialog extends LitElement {
                       .path=${panel.require_admin ? mdiCheck : mdiCancel}
                     ></ha-svg-icon>
                   </td>
-                  <td>
+                  <td class="center">
                     <dash-bouncer-select
                       .selected=${selectedOption}
                       .options=${options}
@@ -391,7 +391,7 @@ export class DashBouncerEntityDialog extends LitElement {
 
       td,
       th {
-        padding: 12px 8px;
+        padding: 12px 4px;
       }
 
       th {
@@ -401,6 +401,14 @@ export class DashBouncerEntityDialog extends LitElement {
 
       th.left {
         text-align: left;
+      }
+
+      th.icon {
+        width: 60px;
+      }
+
+      th.select {
+        width: 164px;
       }
 
       td.center {

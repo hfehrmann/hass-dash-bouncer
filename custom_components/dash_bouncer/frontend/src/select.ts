@@ -34,7 +34,7 @@ export class DashBouncerSelect extends LitElement {
 
   static styles = css`
     .options_holder {
-      display: flex;
+      display: inline-flex;
       flex-direction: row;
       cursor: pointer;
     }
