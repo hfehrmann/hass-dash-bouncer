@@ -47,9 +47,12 @@ export class DashBouncerEntityDialog extends LitElement {
   @state() private _open = false;
 
   public showDialog(params: EntityDialogData): void {
+    const panels = params.panels;
+    panels.sort((a,b) => (a.title ?? "zz").localeCompare(b.title ?? "zz", undefined, { sensitivity: 'base' }));
+
     this.title_kind = params.title_kind;
     this.entity = params.entity;
-    this.panels = params.panels;
+    this.panels = panels;
     this.third_option = params.third_option;
     this.config = params.config;
     this.role_bounce_map = params.role_bounce_map;
@@ -158,6 +161,66 @@ export class DashBouncerEntityDialog extends LitElement {
     `;
   }
 
+  private tableComponent(
+    panels: Panel[],
+    panel_map: Record<string, BounceOption>,
+    third_option: BounceOption,
+    options: BounceOption[]
+  ) {
+    return html`
+      <div class="table">
+        <table>
+          <thead>
+            <tr>
+              <th class="left">Name (URL)</th>
+              <th>Visible</th>
+              <th>Admin</th>
+              <th>Bounce</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${panels.map((panel) => {
+              const isDefault = panel.url_path == this.systemDefaultPanel;
+              const selectedOption =
+                panel_map[panel.url_path] ?? third_option;
+              const isBlocked = selectedOption == BounceOption.block;
+              return html`
+                <tr class="tr-body ${isDefault && isBlocked ? "warn" : ""}">
+                  <td>
+                    ${panel.title ?? "<none>"} (/${panel.url_path})
+                    ${isDefault
+                      ? html`<ha-svg-icon
+                          .path=${mdiHomeCircleOutline}
+                        ></ha-svg-icon>`
+                      : nothing}
+                  </td>
+                  <td class="center">
+                    <ha-svg-icon
+                      .path=${panel.default_visible ? mdiCheck : mdiCancel}
+                    ></ha-svg-icon>
+                  </td>
+                  <td class="center">
+                    <ha-svg-icon
+                      .path=${panel.require_admin ? mdiCheck : mdiCancel}
+                    ></ha-svg-icon>
+                  </td>
+                  <td>
+                    <dash-bouncer-select
+                      .selected=${selectedOption}
+                      .options=${options}
+                      .panel_url=${panel.url_path}
+                      @select=${this._panelSelect}
+                    ></dash-bouncer-select>
+                  </td>
+                </tr>
+              `;
+            })}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
   render() {
     if (!this.entity || !this.panels || !this.config) {
       return nothing;
@@ -166,6 +229,31 @@ export class DashBouncerEntityDialog extends LitElement {
     const darkMode = this.hass.themes.darkMode;
     const uiMode = darkMode ? "dark" : "light";
     const title = `${this.title_kind}: ${this.entity.name}`;
+
+    const roles = this.config.roles ?? [];
+    const roleMap = this.role_bounce_map ?? {};
+    const rolePanelMap: Record<string, BounceOption> = {};
+
+    for (const role of roles) {
+      const map = roleMap[role] ?? { panels: {} };
+      for (const [panel, value] of Object.entries(map.panels)) {
+        if (value == BounceOption.skip || panel in rolePanelMap) {
+          continue;
+        }
+        rolePanelMap[panel] = value;
+      }
+    }
+    const userPanelMap = this.config.panels;
+
+    const userPanels: Panel[] = [];
+    const rolePanels: Panel[] = [];
+    for (const panel of this.panels) {
+      if (panel.url_path in rolePanelMap) {
+        rolePanels.push(panel);
+      } else {
+        userPanels.push(panel);
+      }
+    }
 
     return html`
       <ha-dialog
@@ -216,6 +304,18 @@ export class DashBouncerEntityDialog extends LitElement {
         </div>
 
         ${this.roleComponent()}
+        ${
+          rolePanels.length > 0
+          ? this.tableComponent(
+              rolePanels,
+              rolePanelMap,
+              this.third_option,
+              [BounceOption.allow, BounceOption.block]
+            )
+          : nothing
+        }
+
+        ${this.tableComponent(userPanels, userPanelMap, this.third_option, this.options)}
 
         <div class="disclaimer">
           Dashboard marked with
@@ -224,57 +324,6 @@ export class DashBouncerEntityDialog extends LitElement {
           <br />
           DashBouncer always returns it. You can change the default dashboard in
           Settings.
-        </div>
-
-        <div class="table">
-          <table>
-            <thead>
-              <tr>
-                <th class="left">Name (URL)</th>
-                <th>Visible</th>
-                <th>Admin</th>
-                <th>Bounce</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${this.panels.map((panel) => {
-                const isDefault = panel.url_path == this.systemDefaultPanel;
-                const selectedOption =
-                  this.config.panels[panel.url_path] ?? this.third_option;
-                const isBlocked = selectedOption == BounceOption.block;
-                return html`
-                  <tr class="tr-body ${isDefault && isBlocked ? "warn" : ""}">
-                    <td>
-                      ${panel.title ?? "<none>"} (/${panel.url_path})
-                      ${isDefault
-                        ? html`<ha-svg-icon
-                            .path=${mdiHomeCircleOutline}
-                          ></ha-svg-icon>`
-                        : nothing}
-                    </td>
-                    <td class="center">
-                      <ha-svg-icon
-                        .path=${panel.default_visible ? mdiCheck : mdiCancel}
-                      ></ha-svg-icon>
-                    </td>
-                    <td class="center">
-                      <ha-svg-icon
-                        .path=${panel.require_admin ? mdiCheck : mdiCancel}
-                      ></ha-svg-icon>
-                    </td>
-                    <td>
-                      <dash-bouncer-select
-                        .selected=${selectedOption}
-                        .options=${this.options}
-                        .panel_url=${panel.url_path}
-                        @select=${this._panelSelect}
-                      ></dash-bouncer-select>
-                    </td>
-                  </tr>
-                `;
-              })}
-            </tbody>
-          </table>
         </div>
 
         <ha-dialog-footer slot="footer">
