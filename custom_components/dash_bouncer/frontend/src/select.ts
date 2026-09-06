@@ -6,7 +6,11 @@ import { BounceOption, bounceOption2string } from './types/bounceOption';
 @customElement("dash-bouncer-select")
 export class DashBouncerSelect extends LitElement {
   @property() public selected: BounceOption;
+
   @property({ attribute: false }) public options: [BounceOption];
+
+  @property({ attribute: "warn-selection", type: Boolean })
+  public warnSelection = false;
 
   private _handleClick(option: BounceOption): void {
     const event = new CustomEvent("select", { detail: option, bubbles: true });
@@ -17,10 +21,13 @@ export class DashBouncerSelect extends LitElement {
     return html`
       <div class="options_holder">
         ${this.options.map((option) => {
-          const selected = this.selected == option ? "selected" : "";
+          const isSelected = this.selected == option;
+          const selected = isSelected ? "selected" : "";
+          const warn = isSelected && this.warnSelection ? "warn" : "";
+          console.log(this.warnSelection)
           return html`
             <div
-              class="option ${selected}"
+              class="option ${selected} ${warn}"
               .entry=${option}
               @click=${() => this._handleClick(option)}
             >
@@ -58,6 +65,11 @@ export class DashBouncerSelect extends LitElement {
       background-color: var(--dashb-select-option-color);
       color: var(--dashb-select-option-text);
       font-weight: bold;
+    }
+
+    .selected.warn {
+      background-color: var(--dashb-block-warning-color);
+      color: var(--dashb-block-warning-text-color);
     }
   `;
 }

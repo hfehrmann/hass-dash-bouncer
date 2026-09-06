@@ -29,6 +29,7 @@ const lightStyles = css`
     --dashb-dialog-header-line: #f0f0f0;
 
     --dashb-block-warning-color: #ffe000;
+    --dashb-block-warning-text-color: #594f01;
   }
 `;
 
@@ -52,6 +53,7 @@ const darkStyles = css`
     --dashb-dialog-header-line: #282828;
 
     --dashb-block-warning-color: #9d8e23;
+    --dashb-block-warning-text-color: #594f01;
   }
 `;
 

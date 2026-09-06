@@ -163,8 +163,7 @@ export class DashBouncerEntityDialog extends LitElement {
 
   private tableComponent(
     panels: Panel[],
-    panel_map: Record<string, BounceOption>,
-    third_option: BounceOption,
+    panel_map: (Panel) => [BounceOption, boolean],
     options: BounceOption[]
   ) {
     return html`
@@ -181,8 +180,7 @@ export class DashBouncerEntityDialog extends LitElement {
           <tbody>
             ${panels.map((panel) => {
               const isDefault = panel.url_path == this.systemDefaultPanel;
-              const selectedOption =
-                panel_map[panel.url_path] ?? third_option;
+              const [selectedOption, shouldWarn] = panel_map(panel);
               const isBlocked = selectedOption == BounceOption.block;
               return html`
                 <tr class="tr-body ${isDefault && isBlocked ? "warn" : ""}">
@@ -207,6 +205,7 @@ export class DashBouncerEntityDialog extends LitElement {
                   <td class="center">
                     <dash-bouncer-select
                       .selected=${selectedOption}
+                      ?warn-selection=${shouldWarn}
                       .options=${options}
                       .panel_url=${panel.url_path}
                       @select=${this._panelSelect}
@@ -308,14 +307,26 @@ export class DashBouncerEntityDialog extends LitElement {
           rolePanels.length > 0
           ? this.tableComponent(
               rolePanels,
-              rolePanelMap,
-              this.third_option,
+              (panel) => {
+                const key = panel.url_path;
+                const option = userPanelMap[key]
+                  ?? rolePanelMap[key]
+                  ?? this.third_option;
+                return [option, key in userPanelMap];
+              },
               [BounceOption.allow, BounceOption.block]
             )
           : nothing
         }
 
-        ${this.tableComponent(userPanels, userPanelMap, this.third_option, this.options)}
+        ${
+          this.tableComponent(
+            userPanels,
+            (panel) =>
+              [userPanelMap[panel.url_path] ?? this.third_option, false],
+            this.options
+          )
+        }
 
         <div class="disclaimer">
           Dashboard marked with
