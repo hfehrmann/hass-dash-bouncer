@@ -24,7 +24,6 @@ export class DashBouncerSelect extends LitElement {
           const isSelected = this.selected == option;
           const selected = isSelected ? "selected" : "";
           const warn = isSelected && this.warnSelection ? "warn" : "";
-          console.log(this.warnSelection)
           return html`
             <div
               class="option ${selected} ${warn}"

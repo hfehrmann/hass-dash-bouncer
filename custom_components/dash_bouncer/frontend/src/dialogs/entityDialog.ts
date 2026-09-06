@@ -1,7 +1,7 @@
-import { LitElement, html, css, nothing } from "lit";
+import { LitElement, html, css, nothing, TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 
-import { mdiClose, mdiCheck, mdiCancel, mdiHomeCircleOutline } from "@mdi/js";
+import { mdiClose,mdiCloseBox,  mdiCheck, mdiCancel, mdiHomeCircleOutline } from "@mdi/js";
 
 import { fireEvent } from "../utils/fire_event";
 import type { HASSDomEvent } from "../utils/fire_event";
@@ -28,6 +28,11 @@ import { configToBouncerConfig } from "../utils/config_transformer";
 import type { DashBouncerRoleSelectionData } from "../roleSelection";
 
 const DEFAULT_PANEL = "home";
+
+interface ExtraBounceComponent {
+  render: (Panel) => TemplateResult;
+  action: (Panel) => void;
+}
 
 @customElement("dash-bouncer-entity-dialog")
 export class DashBouncerEntityDialog extends LitElement {
@@ -164,7 +169,8 @@ export class DashBouncerEntityDialog extends LitElement {
   private tableComponent(
     panels: Panel[],
     panel_map: (Panel) => [BounceOption, boolean],
-    options: BounceOption[]
+    options: BounceOption[],
+    extraComponent?: ExtraBounceComponent,
   ) {
     return html`
       <div class="table">
@@ -203,13 +209,23 @@ export class DashBouncerEntityDialog extends LitElement {
                     ></ha-svg-icon>
                   </td>
                   <td class="center">
-                    <dash-bouncer-select
-                      .selected=${selectedOption}
-                      ?warn-selection=${shouldWarn}
-                      .options=${options}
-                      .panel_url=${panel.url_path}
-                      @select=${this._panelSelect}
-                    ></dash-bouncer-select>
+                    <div class="bounce_actions">
+                      <dash-bouncer-select
+                        .selected=${selectedOption}
+                        ?warn-selection=${shouldWarn}
+                        .options=${options}
+                        .panel_url=${panel.url_path}
+                        @select=${this._panelSelect}
+                      ></dash-bouncer-select>
+
+                      <div class="bounce_extra" @click=${() => extraComponent?.action(panel)}>
+                        ${
+                          shouldWarn && extraComponent != null
+                          ? extraComponent.render(panel)
+                          : nothing
+                        }
+                      </div>
+                    </div>
                   </td>
                 </tr>
               `;
@@ -309,12 +325,31 @@ export class DashBouncerEntityDialog extends LitElement {
               rolePanels,
               (panel) => {
                 const key = panel.url_path;
-                const option = userPanelMap[key]
-                  ?? rolePanelMap[key]
-                  ?? this.third_option;
-                return [option, key in userPanelMap];
+                const userPanelValue = userPanelMap[key] ?? this.third_option;
+                if (userPanelValue != this.third_option) {
+                  return [userPanelValue, true];
+                } else {
+                  return [rolePanelMap[key] ?? this.third_option, false];
+                }
               },
-              [BounceOption.allow, BounceOption.block]
+              [BounceOption.allow, BounceOption.block],
+              {
+                render: (panel) => {
+                  return html`
+                    <ha-svg-icon .path=${mdiCloseBox} ></ha-svg-icon>
+                  `;
+                },
+                action: (panel) => {
+                  const urlPath = panel.url_path;
+                  this.config = {
+                    ...this.config,
+                    panels: {
+                      ...this.config.panels,
+                      [urlPath]: this.third_option,
+                    },
+                  };
+                }
+              },
             )
           : nothing
         }
@@ -441,6 +476,16 @@ export class DashBouncerEntityDialog extends LitElement {
       .disclaimer {
         font-size: small;
         margin-top: 18px;
+      }
+
+      .bounce_actions {
+        display: inline-flex;
+        align-items: center;
+      }
+
+      .bounce_extra {
+        margin-left: 8px;
+        width: 30px;
       }
     `,
   ];
