@@ -137,9 +137,9 @@ export class DashBouncerRoleSelection extends LitElement {
       color: var(--dashb-error-color);
     }
 
-  .addRole {
-    margin-top: 8px;
-  }
+    .addRole {
+      margin-top: 4px;
+    }
 
     .roles {
       display: flex;

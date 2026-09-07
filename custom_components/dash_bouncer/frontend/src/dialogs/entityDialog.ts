@@ -164,6 +164,8 @@ export class DashBouncerEntityDialog extends LitElement {
     options: BounceOption[],
     extraComponent?: ExtraBounceComponent,
   ) {
+    const tableDefaultValue = this.config.default ?? BounceOption.default;
+    const isTableDefaultBlock = tableDefaultValue == BounceOption.block;
     return html`
       <div class="table">
         <table>
@@ -177,9 +179,12 @@ export class DashBouncerEntityDialog extends LitElement {
           </thead>
           <tbody>
             ${panels.map((panel) => {
-              const isDefault = panel.url_path == this.systemDefaultPanel;
               const [selectedOption, shouldWarn] = panel_map(panel);
-              const isBlocked = selectedOption == BounceOption.block;
+
+              const isDefault = panel.url_path == this.systemDefaultPanel;
+              const isBlocked =
+                selectedOption == BounceOption.block
+                || (selectedOption == BounceOption.default && isTableDefaultBlock);
               return html`
                 <tr class="tr-body ${isDefault && isBlocked ? "warn" : ""}">
                   <td>
@@ -275,19 +280,6 @@ export class DashBouncerEntityDialog extends LitElement {
         .open=${this._open}
         @closed=${this.closeDialog}
       >
-        ${
-          this.config.default != null
-          ? html`<div class="configs default">
-              <div class="title">Default bounce</div>
-              <dash-bouncer-select
-                .selected=${this.config.default}
-                .options=${this.options.filter((x) => x != BounceOption.default)}
-                @select=${this._defaultSelect}
-              ></dash-bouncer-select>
-            </div>`
-          : nothing
-        }
-
         ${this.roleComponent()}
         ${
           rolePanels.length > 0
@@ -327,6 +319,19 @@ export class DashBouncerEntityDialog extends LitElement {
         ${
           userPanels.length > 0 && this.config.roles
           ? html`<hr class="intertable">`
+          : nothing
+        }
+
+        ${
+          this.config.default != null
+          ? html`<div class="configs default">
+              <div class="title">Default bounce</div>
+              <dash-bouncer-select
+                .selected=${this.config.default}
+                .options=${this.options.filter((x) => x != BounceOption.default)}
+                @select=${this._defaultSelect}
+              ></dash-bouncer-select>
+            </div>`
           : nothing
         }
 
