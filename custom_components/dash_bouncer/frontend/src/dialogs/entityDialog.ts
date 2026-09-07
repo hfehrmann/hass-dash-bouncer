@@ -146,13 +146,12 @@ export class DashBouncerEntityDialog extends LitElement {
 
     const role_map = this.role_bounce_map ?? {};
     const allRoles = Object.keys(role_map);
-    const availableRoles = allRoles.filter((e) => !roles.includes(e))
-    availableRoles.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+    allRoles.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
 
     return html`
       <dash-bouncer-role-selection
         .selectedRoles=${roles}
-        .availableRoles=${availableRoles}
+        .availableRoles=${allRoles}
         @dashb-updated-roles=${this._handleRoleUpdate}
       >
       </dash-bouncer-role-selection>
@@ -326,9 +325,9 @@ export class DashBouncerEntityDialog extends LitElement {
         }
 
         ${
-          userPanels.length > 0 && rolePanels.length > 0
-        ? html`<hr class="intertable">`
-        : nothing
+          userPanels.length > 0 && this.config.roles
+          ? html`<hr class="intertable">`
+          : nothing
         }
 
         ${

@@ -42,6 +42,7 @@ export class DashBouncerRoleSelection extends LitElement {
   }
 
   private _handleDelete(ev: Event) {
+    ev.stopPropagation();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const role: string = (ev.currentTarget as any).value;
     const updated_roles = [...this.selectedRoles];
@@ -52,8 +53,8 @@ export class DashBouncerRoleSelection extends LitElement {
     fireEvent(this, "dashb-updated-roles", { updated_roles })
   }
 
-  private roleSelection() {
-    if (this.availableRoles.length == 0) {
+  private roleSelection(selectableRoles: string[]) {
+    if (selectableRoles.length == 0) {
       return html`
         <ha-button appearence="plain" variant="outlined" size="small" disabled="true">No more roles</ha-button>
       `;
@@ -64,15 +65,16 @@ export class DashBouncerRoleSelection extends LitElement {
         <!-- we could use ha-icon-button if we support 2026.5 -->
         <ha-button
           slot="trigger"
-          appearance="plain"
+          appearance="outlined"
           variant="outlined"
           size="small"
+          class="addRole"
         >
           Add role
           <ha-svg-icon slot="end" .path=${mdiChevronDown}></ha-svg-icon>
         </ha-button>
 
-        ${this.availableRoles.map((role) => html`
+        ${selectableRoles.map((role) => html`
           <ha-dropdown-item value=${role}>
             ${role}
           </ha-dropdown-item>
@@ -82,13 +84,19 @@ export class DashBouncerRoleSelection extends LitElement {
   }
 
   render() {
+    const selectedSet = new Set(this.selectedRoles);
+    const selectableRoles = this.availableRoles
+    .filter((role) => !selectedSet.delete(role));
+
     return html`
       <div>
-        <div>Roles</div>
+        <div class="title">Roles</div>
         <ha-sortable handle-selector=".handle" @item-moved=${this._handleMoved}>
           <div class="roles">
             ${this.selectedRoles.map((role) => html`
-              <div class="role-item">
+              <div
+                class="role-item ${selectedSet.has(role) ? "nonExistent" : ""}"
+              >
                 <span class="delete" .value=${role} @click=${this._handleDelete}>
                   <ha-svg-icon
                     .path=${mdiCloseBox}
@@ -99,13 +107,18 @@ export class DashBouncerRoleSelection extends LitElement {
                     .path=${mdiDragHorizontalVariant}
                   ></ha-svg-icon>
                 </span>
-                <span class="value">${role}</span>
+                <span
+                  class="value"
+                  title=${selectedSet.has(role) ? "Role doesn't exist" : ""}
+                >
+                  ${role}
+                </span>
               </div>
             `)}
           </div>
         </ha-sortable>
 
-        ${this.roleSelection()}
+        ${this.roleSelection(selectableRoles)}
       </div>
     `;
   }
@@ -114,6 +127,19 @@ export class DashBouncerRoleSelection extends LitElement {
     div ha-select {
       --ha-select-height: 10px;
     }
+
+    .title {
+        font-weight: 800;
+        margin-bottom: 4px;
+    }
+
+    .nonExistent {
+      color: var(--dashb-error-color);
+    }
+
+  .addRole {
+    margin-top: 8px;
+  }
 
     .roles {
       display: flex;

@@ -6,6 +6,7 @@ const baseStyles = css`
     --dashb-header-font-size: calc(20px * var(--dashb-font-size-scale));
     --dashb-body-header-font-size: calc(24px * var(--dashb-font-size-scale));
     --dashb-body-header-opacity: 0.87;
+    --dashb-error-color: #db4437;
   }
 `;
 
