@@ -98,22 +98,15 @@ export class DashBouncerEntityDialog extends LitElement {
     }
   }
 
-  private _setTable(option: BounceOption) {
-    if (option == this.third_option) {
-      this.config = {
-        ...this.config,
-        panels: {},
-      };
-    } else {
-      const panels_config: Record<string, BounceOption> = {};
-      for (const panel of this.panels) {
-        panels_config[panel.url_path] = option;
-      }
-      this.config = {
-        ...this.config,
-        panels: panels_config,
-      };
+  private _setTable(panels: Panel[], option: BounceOption) {
+    const panels_config: Record<string, BounceOption> = this.config.panels;
+    for (const panel of panels) {
+      panels_config[panel.url_path] = option;
     }
+    this.config = {
+      ...this.config,
+      panels: panels_config,
+    };
   }
 
   private async _save() {
@@ -281,7 +274,7 @@ export class DashBouncerEntityDialog extends LitElement {
         ${
           this.config.default != null
           ? html`<div class="configs default">
-              <div>Default bounce</div>
+              <div class="title">Default bounce</div>
               <dash-bouncer-select
                 .selected=${this.config.default}
                 .options=${this.options.filter((x) => x != BounceOption.default)}
@@ -290,33 +283,6 @@ export class DashBouncerEntityDialog extends LitElement {
             </div>`
           : nothing
         }
-
-        <div class="configs">
-          <div>Table toggle</div>
-          <div class="actions">
-            <ha-button
-              size="small"
-              appearance="filled"
-              @click=${() => this._setTable(BounceOption.allow)}
-            >
-              Allow
-            </ha-button>
-            <ha-button
-              size="small"
-              appearance="filled"
-              @click=${() => this._setTable(BounceOption.block)}
-            >
-              Block
-            </ha-button>
-            <ha-button
-              size="small"
-              appearance="filled"
-              @click=${() => this._setTable(this.third_option)}
-            >
-              ${bounceOption2string(this.third_option)}
-            </ha-button>
-          </div>
-        </div>
 
         ${this.roleComponent()}
         ${
@@ -354,6 +320,32 @@ export class DashBouncerEntityDialog extends LitElement {
           : nothing
         }
 
+        <div class="configs">
+          <div class="title">Table toggle</div>
+          <div class="actions">
+            <ha-button
+              size="small"
+              appearance="filled"
+              @click=${() => this._setTable(userPanels, BounceOption.allow)}
+            >
+              Allow
+            </ha-button>
+            <ha-button
+              size="small"
+              appearance="filled"
+              @click=${() => this._setTable(userPanels, BounceOption.block)}
+            >
+              Block
+            </ha-button>
+            <ha-button
+              size="small"
+              appearance="filled"
+              @click=${() => this._setTable(userPanels, this.third_option)}
+            >
+              ${bounceOption2string(this.third_option)}
+            </ha-button>
+          </div>
+        </div>
         ${
           this.tableComponent(
             userPanels,
@@ -413,6 +405,11 @@ export class DashBouncerEntityDialog extends LitElement {
       .configs {
         display: flex;
         justify-content: space-between;
+      }
+
+      .configs .title {
+        display: flex;
+        align-items: center;
       }
 
       .configs.default {
