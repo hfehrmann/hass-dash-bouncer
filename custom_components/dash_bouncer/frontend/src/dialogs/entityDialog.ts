@@ -211,13 +211,18 @@ export class DashBouncerEntityDialog extends LitElement {
                         @select=${this._panelSelect}
                       ></dash-bouncer-select>
 
-                      <div class="bounce_extra" @click=${() => extraComponent?.action(panel)}>
-                        ${
-                          shouldWarn && extraComponent != null
-                          ? extraComponent.render(panel)
-                          : nothing
-                        }
-                      </div>
+                      ${
+                        extraComponent != null
+                        ? html`
+                          <div class="bounce_extra" @click=${() => extraComponent?.action(panel)}>
+                            ${
+                              shouldWarn && extraComponent != null
+                              ? extraComponent.render(panel)
+                              : nothing
+                            }
+                          </div>`
+                        : nothing
+                      }
                     </div>
                   </td>
                 </tr>
@@ -320,39 +325,50 @@ export class DashBouncerEntityDialog extends LitElement {
           : nothing
         }
 
-        <div class="configs">
-          <div class="title">Table toggle</div>
-          <div class="actions">
-            <ha-button
-              size="small"
-              appearance="filled"
-              @click=${() => this._setTable(userPanels, BounceOption.allow)}
-            >
-              Allow
-            </ha-button>
-            <ha-button
-              size="small"
-              appearance="filled"
-              @click=${() => this._setTable(userPanels, BounceOption.block)}
-            >
-              Block
-            </ha-button>
-            <ha-button
-              size="small"
-              appearance="filled"
-              @click=${() => this._setTable(userPanels, this.third_option)}
-            >
-              ${bounceOption2string(this.third_option)}
-            </ha-button>
-          </div>
-        </div>
         ${
-          this.tableComponent(
-            userPanels,
-            (panel) =>
-              [userPanelMap[panel.url_path] ?? this.third_option, false],
-            this.options
-          )
+          userPanels.length > 0 && rolePanels.length > 0
+        ? html`<hr class="intertable">`
+        : nothing
+        }
+
+        ${
+          userPanels.length > 0
+          ? html`
+            <div class="configs toggle">
+              <div class="title">Table toggle</div>
+              <div class="actions">
+                <ha-button
+                  size="small"
+                  appearance="filled"
+                  @click=${() => this._setTable(userPanels, BounceOption.allow)}
+                >
+                  Allow
+                </ha-button>
+                <ha-button
+                  size="small"
+                  appearance="filled"
+                  @click=${() => this._setTable(userPanels, BounceOption.block)}
+                >
+                  Block
+                </ha-button>
+                <ha-button
+                  size="small"
+                  appearance="filled"
+                  @click=${() => this._setTable(userPanels, this.third_option)}
+                >
+                  ${bounceOption2string(this.third_option)}
+                </ha-button>
+              </div>
+            </div>
+            ${
+              this.tableComponent(
+                userPanels,
+                (panel) =>
+                  [userPanelMap[panel.url_path] ?? this.third_option, false],
+                this.options
+              )
+            }`
+          : nothing
         }
 
         <div class="disclaimer">
@@ -472,7 +488,7 @@ export class DashBouncerEntityDialog extends LitElement {
 
       .disclaimer {
         font-size: small;
-        margin-top: 18px;
+        margin-top: 4px;
       }
 
       .bounce_actions {
@@ -483,6 +499,10 @@ export class DashBouncerEntityDialog extends LitElement {
       .bounce_extra {
         margin-left: 8px;
         width: 30px;
+      }
+
+      hr.intertable {
+        margin: 24px 0 16px;
       }
     `,
   ];
