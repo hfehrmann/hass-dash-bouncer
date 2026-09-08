@@ -1,7 +1,7 @@
 import { LitElement, html, css, nothing, TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 
-import { mdiClose,mdiCloseBox,  mdiCheck, mdiCancel, mdiHomeCircleOutline } from "@mdi/js";
+import { mdiCloseBox,  mdiCheck, mdiCancel, mdiHomeCircleOutline } from "@mdi/js";
 
 import { fireEvent } from "../utils/fire_event";
 import type { HASSDomEvent } from "../utils/fire_event";
@@ -19,18 +19,16 @@ import type {
   Panel,
   RoleConfig,
 } from "../types/base";
-import type { BouncerConfig } from "../types/backend";
 import { BounceOption, bounceOption2string } from '../types/bounceOption';
 
 import { openConfirmationDialog } from "../utils/entity_dialog_helper";
 
-import { configToBouncerConfig } from "../utils/config_transformer";
 import type { DashBouncerRoleSelectionData } from "../roleSelection";
 
 const DEFAULT_PANEL = "home";
 
 interface ExtraBounceComponent {
-  render: (Panel) => TemplateResult;
+  render: () => TemplateResult;
   action: (Panel) => void;
 }
 
@@ -221,7 +219,7 @@ export class DashBouncerEntityDialog extends LitElement {
                           <div class="bounce_extra" @click=${() => extraComponent?.action(panel)}>
                             ${
                               shouldWarn && extraComponent != null
-                              ? extraComponent.render(panel)
+                              ? extraComponent.render()
                               : nothing
                             }
                           </div>`
@@ -296,7 +294,7 @@ export class DashBouncerEntityDialog extends LitElement {
               },
               [BounceOption.allow, BounceOption.block],
               {
-                render: (panel) => {
+                render: () => {
                   return html`
                     <ha-svg-icon .path=${mdiCloseBox} ></ha-svg-icon>
                   `;

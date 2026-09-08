@@ -6,7 +6,7 @@ import type { HomeAssistant } from "./hass/types";
 import { styles } from "./hass/styles";
 
 import type { Person } from "./types/entities";
-import type { Panel, UserConfig, DialogEntity, DialogEntityConfig, DialogDataSaveOp, DialogDataDeleteOp, RoleConfig } from "./types/base";
+import type { Panel, DialogEntity, DialogEntityConfig, DialogDataSaveOp, DialogDataDeleteOp, RoleConfig } from "./types/base";
 import type { BouncerConfig } from "./types/backend";
 import { BounceOption } from "./types/bounceOption";
 

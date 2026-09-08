@@ -1,4 +1,4 @@
-import { LitElement, html, css, nothing } from "lit";
+import { LitElement, html, css } from "lit";
 import { customElement, property, state, query} from "lit/decorators.js";
 
 import { mdiClose } from "@mdi/js";
@@ -7,7 +7,6 @@ import type { HomeAssistant } from "../hass/types";
 import { HaInput } from "../hass/types";
 
 import type { AddRoleDialogData, Panel, DialogEntity, DialogEntityConfig, DialogDataSaveOp } from "../types/base";
-import type { BouncerConfig } from "../types/backend";
 
 import { BounceOption } from "../types/bounceOption";
 import { openDialog } from "../utils/entity_dialog_helper";
@@ -29,7 +28,7 @@ export class DashBouncerAddRoleDialog extends LitElement {
     this.save = params.save;
   }
 
-  _panelsToDefaultConfig(panels: Panel[]): DialogEntityConfig {
+  _panelsToDefaultConfig(): DialogEntityConfig {
     return { panels: {} };
   }
 
@@ -40,13 +39,12 @@ export class DashBouncerAddRoleDialog extends LitElement {
       return
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const panels: Panel[] = this.panels;
 
     const title_kind = "Role";
     const entity: DialogEntity = { id: role, name: role };
     const third_option = BounceOption.skip;
-    const config = this._panelsToDefaultConfig(panels);
+    const config = this._panelsToDefaultConfig();
     const save = this.save;
     openDialog(this, { title_kind, entity, panels, third_option, config, save });
     this.closeDialog();

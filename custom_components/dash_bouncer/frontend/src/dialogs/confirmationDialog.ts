@@ -1,10 +1,8 @@
-import { LitElement, html, css, nothing } from "lit";
-import { customElement, property, state, query} from "lit/decorators.js";
+import { LitElement, html, css } from "lit";
+import { customElement, property, state } from "lit/decorators.js";
 
 import type { HomeAssistant } from "../hass/types";
 import type { ConfirmationDialogData,ConfirmationDialogDeleteOp } from "../types/base";
-
-import { BounceOption } from "../types/bounceOption";
 
 @customElement("dash-bouncer-confirmation-dialog")
 export class DashBouncerConfirmationDialog extends LitElement {
