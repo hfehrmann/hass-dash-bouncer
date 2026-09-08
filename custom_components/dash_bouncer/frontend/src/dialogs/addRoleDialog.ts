@@ -1,12 +1,18 @@
 import { LitElement, html, css } from "lit";
-import { customElement, property, state, query} from "lit/decorators.js";
+import { customElement, property, state, query } from "lit/decorators.js";
 
 import { mdiClose } from "@mdi/js";
 
 import type { HomeAssistant } from "../hass/types";
 import { HaInput } from "../hass/types";
 
-import type { AddRoleDialogData, Panel, DialogEntity, DialogEntityConfig, DialogDataSaveOp } from "../types/base";
+import type {
+  AddRoleDialogData,
+  Panel,
+  DialogEntity,
+  DialogEntityConfig,
+  DialogDataSaveOp,
+} from "../types/base";
 
 import { BounceOption } from "../types/bounceOption";
 import { openDialog } from "../utils/entity_dialog_helper";
@@ -35,8 +41,8 @@ export class DashBouncerAddRoleDialog extends LitElement {
   _configureRole() {
     const role = this._input.value;
     if (role.length == 0) {
-      this._valid = false
-      return
+      this._valid = false;
+      return;
     }
 
     const panels: Panel[] = this.panels;
@@ -46,12 +52,19 @@ export class DashBouncerAddRoleDialog extends LitElement {
     const third_option = BounceOption.skip;
     const config = this._panelsToDefaultConfig();
     const save = this.save;
-    openDialog(this, { title_kind, entity, panels, third_option, config, save });
+    openDialog(this, {
+      title_kind,
+      entity,
+      panels,
+      third_option,
+      config,
+      save,
+    });
     this.closeDialog();
   }
 
   _onChange() {
-    this._valid = this._input.value.length != 0
+    this._valid = this._input.value.length != 0;
   }
 
   render() {
@@ -81,19 +94,15 @@ export class DashBouncerAddRoleDialog extends LitElement {
             validation-message=${"Non empty name required"}
             @change=${this._onChange}
           ></ha-input>
-          <ha-button
-            @click=${this._configureRole}
-          >
-              Next
-          </ha-button>
+          <ha-button @click=${this._configureRole}> Next </ha-button>
         </div>
       </ha-dialog>
-      `;
+    `;
   }
 
   private closeDialog(): void {
-    this._open = false
-    this._input.value = ""
+    this._open = false;
+    this._input.value = "";
   }
 
   static styles = css`

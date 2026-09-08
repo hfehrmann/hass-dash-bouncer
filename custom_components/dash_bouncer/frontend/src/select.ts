@@ -1,7 +1,7 @@
 import { LitElement, html, css } from "lit";
 import { customElement, property } from "lit/decorators.js";
 
-import { BounceOption, bounceOption2string } from './types/bounceOption';
+import { BounceOption, bounceOption2string } from "./types/bounceOption";
 
 @customElement("dash-bouncer-select")
 export class DashBouncerSelect extends LitElement {

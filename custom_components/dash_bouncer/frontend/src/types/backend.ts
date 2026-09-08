@@ -1,4 +1,4 @@
-import { BounceOption } from './bounceOption';
+import { BounceOption } from "./bounceOption";
 
 export interface BouncerUserConfig {
   default_bounce: BounceOption;

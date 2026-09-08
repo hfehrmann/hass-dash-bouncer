@@ -2,14 +2,17 @@ import { LitElement, html, css } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 
 import type { HomeAssistant } from "../hass/types";
-import type { ConfirmationDialogData,ConfirmationDialogDeleteOp } from "../types/base";
+import type {
+  ConfirmationDialogData,
+  ConfirmationDialogDeleteOp,
+} from "../types/base";
 
 @customElement("dash-bouncer-confirmation-dialog")
 export class DashBouncerConfirmationDialog extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
 
   @state() private _open = false;
-  @state() private text: string
+  @state() private text: string;
   @state() private delete: ConfirmationDialogDeleteOp;
 
   public showDialog(params: ConfirmationDialogData): void {
@@ -36,14 +39,13 @@ export class DashBouncerConfirmationDialog extends LitElement {
         .open=${this._open}
         @closed=${this.closeDialog}
       >
-        <div>
-          ${this.text}
-        </div>
+        <div>${this.text}</div>
         <ha-dialog-footer slot="footer">
           <ha-button
             slot="secondaryAction"
             appearance="filled"
-            @click=${this.closeDialog}>
+            @click=${this.closeDialog}
+          >
             Cancel
           </ha-button>
           <ha-button
@@ -55,11 +57,11 @@ export class DashBouncerConfirmationDialog extends LitElement {
           </ha-button>
         </ha-dialog-footer>
       </ha-dialog>
-      `;
+    `;
   }
 
   private closeDialog(): void {
-    this._open = false
+    this._open = false;
     this.delete = undefined;
   }
 

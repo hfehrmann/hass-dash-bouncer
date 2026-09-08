@@ -22,7 +22,7 @@ export class HaInput {
 }
 
 export class HaDropdownSelectEvent {
-    detail: { item: { value: string } };
+  detail: { item: { value: string } };
 }
 
 declare global {

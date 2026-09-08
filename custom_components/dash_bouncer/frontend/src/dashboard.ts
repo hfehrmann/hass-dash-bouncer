@@ -6,13 +6,26 @@ import type { HomeAssistant } from "./hass/types";
 import { styles } from "./hass/styles";
 
 import type { Person } from "./types/entities";
-import type { Panel, DialogEntity, DialogEntityConfig, DialogDataSaveOp, DialogDataDeleteOp, RoleConfig } from "./types/base";
+import type {
+  Panel,
+  DialogEntity,
+  DialogEntityConfig,
+  DialogDataSaveOp,
+  DialogDataDeleteOp,
+  RoleConfig,
+} from "./types/base";
 import type { BouncerConfig } from "./types/backend";
 import { BounceOption } from "./types/bounceOption";
 
 import { openDialog, openAddRoleDialog } from "./utils/entity_dialog_helper";
 
-import { configToBouncerConfig, bouncerConfigToUserConfig, bouncerRoleConfigToRoleConfig, roleConfigToBouncerRoleConfig, allRolesBouncerRoleConfigToRoleConfig } from "./utils/config_transformer";
+import {
+  configToBouncerConfig,
+  bouncerConfigToUserConfig,
+  bouncerRoleConfigToRoleConfig,
+  roleConfigToBouncerRoleConfig,
+  allRolesBouncerRoleConfigToRoleConfig,
+} from "./utils/config_transformer";
 
 @customElement("dash-bouncer-dashboard")
 export class DashBouncerDashboard extends LitElement {
@@ -84,9 +97,13 @@ export class DashBouncerDashboard extends LitElement {
     const role_bounce_map = this._allRoleConfig(panels);
     const save = async (entity: DialogEntity, config: DialogEntityConfig) => {
       const def = config.default ?? BounceOption.allow;
-      const panels = config.panels
+      const panels = config.panels;
       const roles = config.roles ?? [];
-      const bouncerUserConfig = configToBouncerConfig({ default: def, roles, panels });
+      const bouncerUserConfig = configToBouncerConfig({
+        default: def,
+        roles,
+        panels,
+      });
 
       return await this.hass.callApi<BouncerConfig>(
         "POST",
@@ -95,12 +112,20 @@ export class DashBouncerDashboard extends LitElement {
       );
     };
     window.addEventListener("dash-bouncer-new-config", this._newConfig);
-    openDialog(this, { title_kind, entity, panels, role_bounce_map, third_option, config, save });
+    openDialog(this, {
+      title_kind,
+      entity,
+      panels,
+      role_bounce_map,
+      third_option,
+      config,
+      save,
+    });
   }
 
   private _getAddRoleSaveOp(): DialogDataSaveOp {
     return async (entity: DialogEntity, config: DialogEntityConfig) => {
-      const panels = config.panels
+      const panels = config.panels;
       const bouncerRoleConfig = roleConfigToBouncerRoleConfig({ panels });
 
       return await this.hass.callApi<BouncerConfig>(
@@ -108,7 +133,7 @@ export class DashBouncerDashboard extends LitElement {
         `dash_bouncer/role/config/${entity.id}`,
         { ...bouncerRoleConfig },
       );
-    }
+    };
   }
 
   private _getRoleDeleteOp(): DialogDataDeleteOp {
@@ -117,7 +142,7 @@ export class DashBouncerDashboard extends LitElement {
         "DELETE",
         `dash_bouncer/role/config/${entity.id}`,
       );
-    }
+    };
   }
 
   private _openAddRole(ev: MouseEvent) {
@@ -149,7 +174,15 @@ export class DashBouncerDashboard extends LitElement {
     const save = this._getAddRoleSaveOp();
     const deleteOp = this._getRoleDeleteOp();
     window.addEventListener("dash-bouncer-new-config", this._newConfig);
-    openDialog(this, { title_kind, entity, panels, third_option, config, save, delete: deleteOp });
+    openDialog(this, {
+      title_kind,
+      entity,
+      panels,
+      third_option,
+      config,
+      save,
+      delete: deleteOp,
+    });
   }
 
   // Can this fire multiple times??? test that case
@@ -161,7 +194,9 @@ export class DashBouncerDashboard extends LitElement {
 
   private _getRoles(): string[] {
     const roles = Object.keys(this.config.roles ?? {});
-    roles.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+    roles.sort((a, b) =>
+      a.localeCompare(b, undefined, { sensitivity: "base" }),
+    );
     return roles;
   }
 
@@ -185,7 +220,10 @@ export class DashBouncerDashboard extends LitElement {
 
             <div class="body-panel">
               <div class="intro">
-                <span>Manage dashboard access for users. You can also set roles for them.</span>
+                <span>
+                  Manage dashboard access for users. You can also set roles for
+                  them.
+                </span>
               </div>
 
               <div class="elements">
@@ -231,11 +269,8 @@ export class DashBouncerDashboard extends LitElement {
                     )}
                   </ha-list>
                 </ha-card>
-                <ha-button
-                  .panels=${panels}
-                  @click=${this._openAddRole}
-                >
-                    Add role
+                <ha-button .panels=${panels} @click=${this._openAddRole}>
+                  Add role
                 </ha-button>
               </div>
             </div>

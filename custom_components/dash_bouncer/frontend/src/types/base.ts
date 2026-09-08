@@ -1,5 +1,5 @@
-import { BounceOption } from './bounceOption';
-import type{ BouncerConfig } from './backend';
+import { BounceOption } from "./bounceOption";
+import type { BouncerConfig } from "./backend";
 
 export interface Panel {
   url_path: string;
@@ -29,8 +29,13 @@ export interface DialogEntityConfig {
   panels: Record<string, BounceOption>;
 }
 
-export type DialogDataSaveOp = (entity: DialogEntity, config: DialogEntityConfig) => Promise<BouncerConfig>;
-export type DialogDataDeleteOp = (entity: DialogEntity) => Promise<BouncerConfig>;
+export type DialogDataSaveOp = (
+  entity: DialogEntity,
+  config: DialogEntityConfig,
+) => Promise<BouncerConfig>;
+export type DialogDataDeleteOp = (
+  entity: DialogEntity,
+) => Promise<BouncerConfig>;
 export interface EntityDialogData {
   title_kind: string;
   entity: DialogEntity;
@@ -43,13 +48,12 @@ export interface EntityDialogData {
 }
 
 export interface AddRoleDialogData {
-    panels: Panel[];
-    save: DialogDataSaveOp;
+  panels: Panel[];
+  save: DialogDataSaveOp;
 }
 
 export type ConfirmationDialogDeleteOp = () => Promise<void>;
 export interface ConfirmationDialogData {
-    text: string;
-    delete: ConfirmationDialogDeleteOp;
+  text: string;
+  delete: ConfirmationDialogDeleteOp;
 }
-

@@ -82,7 +82,12 @@ export const configToBouncerConfig = (
     }
   }
 
-  return { default_bounce: config.default, roles: config.roles, allowed, blocked };
+  return {
+    default_bounce: config.default,
+    roles: config.roles,
+    allowed,
+    blocked,
+  };
 };
 
 export const roleConfigToBouncerRoleConfig = (

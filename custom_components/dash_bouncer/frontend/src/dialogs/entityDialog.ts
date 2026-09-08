@@ -1,7 +1,12 @@
 import { LitElement, html, css, nothing, TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 
-import { mdiCloseBox,  mdiCheck, mdiCancel, mdiHomeCircleOutline } from "@mdi/js";
+import {
+  mdiCloseBox,
+  mdiCheck,
+  mdiCancel,
+  mdiHomeCircleOutline,
+} from "@mdi/js";
 
 import { fireEvent } from "../utils/fire_event";
 import type { HASSDomEvent } from "../utils/fire_event";
@@ -19,7 +24,7 @@ import type {
   Panel,
   RoleConfig,
 } from "../types/base";
-import { BounceOption, bounceOption2string } from '../types/bounceOption';
+import { BounceOption, bounceOption2string } from "../types/bounceOption";
 
 import { openConfirmationDialog } from "../utils/entity_dialog_helper";
 
@@ -51,7 +56,11 @@ export class DashBouncerEntityDialog extends LitElement {
 
   public showDialog(params: EntityDialogData): void {
     const panels = params.panels;
-    panels.sort((a,b) => (a.title ?? "zz").localeCompare(b.title ?? "zz", undefined, { sensitivity: 'base' }));
+    panels.sort((a, b) =>
+      (a.title ?? "zz").localeCompare(b.title ?? "zz", undefined, {
+        sensitivity: "base",
+      }),
+    );
 
     this.title_kind = params.title_kind;
     this.entity = params.entity;
@@ -144,7 +153,9 @@ export class DashBouncerEntityDialog extends LitElement {
 
     const role_map = this.role_bounce_map ?? {};
     const allRoles = Object.keys(role_map);
-    allRoles.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+    allRoles.sort((a, b) =>
+      a.localeCompare(b, undefined, { sensitivity: "base" }),
+    );
 
     return html`
       <dash-bouncer-role-selection
@@ -181,8 +192,8 @@ export class DashBouncerEntityDialog extends LitElement {
 
               const isDefault = panel.url_path == this.systemDefaultPanel;
               const isBlocked =
-                selectedOption == BounceOption.block
-                || (selectedOption == BounceOption.default && isTableDefaultBlock);
+                selectedOption == BounceOption.block ||
+                (selectedOption == BounceOption.default && isTableDefaultBlock);
               return html`
                 <tr class="tr-body ${isDefault && isBlocked ? "warn" : ""}">
                   <td>
@@ -213,18 +224,16 @@ export class DashBouncerEntityDialog extends LitElement {
                         @select=${this._panelSelect}
                       ></dash-bouncer-select>
 
-                      ${
-                        extraComponent != null
-                        ? html`
-                          <div class="bounce_extra" @click=${() => extraComponent?.action(panel)}>
-                            ${
-                              shouldWarn && extraComponent != null
+                      ${extraComponent != null
+                        ? html` <div
+                            class="bounce_extra"
+                            @click=${() => extraComponent?.action(panel)}
+                          >
+                            ${shouldWarn && extraComponent != null
                               ? extraComponent.render()
-                              : nothing
-                            }
+                              : nothing}
                           </div>`
-                        : nothing
-                      }
+                        : nothing}
                     </div>
                   </td>
                 </tr>
@@ -279,8 +288,7 @@ export class DashBouncerEntityDialog extends LitElement {
         @closed=${this.closeDialog}
       >
         ${this.roleComponent()}
-        ${
-          rolePanels.length > 0
+        ${rolePanels.length > 0
           ? this.tableComponent(
               rolePanels,
               (panel) => {
@@ -296,7 +304,7 @@ export class DashBouncerEntityDialog extends LitElement {
               {
                 render: () => {
                   return html`
-                    <ha-svg-icon .path=${mdiCloseBox} ></ha-svg-icon>
+                    <ha-svg-icon .path=${mdiCloseBox}></ha-svg-icon>
                   `;
                 },
                 action: (panel) => {
@@ -308,70 +316,64 @@ export class DashBouncerEntityDialog extends LitElement {
                       [urlPath]: this.third_option,
                     },
                   };
-                }
+                },
               },
             )
-          : nothing
-        }
-
-        ${
-          userPanels.length > 0 && this.config.roles
-          ? html`<hr class="intertable">`
-          : nothing
-        }
-
-        ${
-          this.config.default != null
+          : nothing}
+        ${userPanels.length > 0 && this.config.roles
+          ? html`<hr class="intertable" />`
+          : nothing}
+        ${this.config.default != null
           ? html`<div class="configs default">
               <div class="title">Default bounce</div>
               <dash-bouncer-select
                 .selected=${this.config.default}
-                .options=${this.options.filter((x) => x != BounceOption.default)}
+                .options=${this.options.filter(
+                  (x) => x != BounceOption.default,
+                )}
                 @select=${this._defaultSelect}
               ></dash-bouncer-select>
             </div>`
-          : nothing
-        }
-
-        ${
-          userPanels.length > 0
-          ? html`
-            <div class="configs toggle">
-              <div class="title">Table toggle</div>
-              <div class="actions">
-                <ha-button
-                  size="small"
-                  appearance="filled"
-                  @click=${() => this._setTable(userPanels, BounceOption.allow)}
-                >
-                  Allow
-                </ha-button>
-                <ha-button
-                  size="small"
-                  appearance="filled"
-                  @click=${() => this._setTable(userPanels, BounceOption.block)}
-                >
-                  Block
-                </ha-button>
-                <ha-button
-                  size="small"
-                  appearance="filled"
-                  @click=${() => this._setTable(userPanels, this.third_option)}
-                >
-                  ${bounceOption2string(this.third_option)}
-                </ha-button>
+          : nothing}
+        ${userPanels.length > 0
+          ? html` <div class="configs toggle">
+                <div class="title">Table toggle</div>
+                <div class="actions">
+                  <ha-button
+                    size="small"
+                    appearance="filled"
+                    @click=${() =>
+                      this._setTable(userPanels, BounceOption.allow)}
+                  >
+                    Allow
+                  </ha-button>
+                  <ha-button
+                    size="small"
+                    appearance="filled"
+                    @click=${() =>
+                      this._setTable(userPanels, BounceOption.block)}
+                  >
+                    Block
+                  </ha-button>
+                  <ha-button
+                    size="small"
+                    appearance="filled"
+                    @click=${() =>
+                      this._setTable(userPanels, this.third_option)}
+                  >
+                    ${bounceOption2string(this.third_option)}
+                  </ha-button>
+                </div>
               </div>
-            </div>
-            ${
-              this.tableComponent(
+              ${this.tableComponent(
                 userPanels,
-                (panel) =>
-                  [userPanelMap[panel.url_path] ?? this.third_option, false],
-                this.options
-              )
-            }`
-          : nothing
-        }
+                (panel) => [
+                  userPanelMap[panel.url_path] ?? this.third_option,
+                  false,
+                ],
+                this.options,
+              )}`
+          : nothing}
 
         <div class="disclaimer">
           Dashboard marked with
@@ -383,18 +385,15 @@ export class DashBouncerEntityDialog extends LitElement {
         </div>
 
         <ha-dialog-footer slot="footer">
-          ${
-            this.delete != null
-            ? html`
-              <ha-button
+          ${this.delete != null
+            ? html` <ha-button
                 slot="secondaryAction"
                 variant="danger"
                 @click=${this._delete}
               >
                 Delete
               </ha-button>`
-            : nothing
-          }
+            : nothing}
           <ha-button slot="primaryAction" @click=${this._save}>
             Save
           </ha-button>

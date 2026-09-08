@@ -16,5 +16,4 @@ export function bounceOption2string(option: BounceOption): string {
     case BounceOption.skip:
       return "Skip";
   }
-};
-
+}
