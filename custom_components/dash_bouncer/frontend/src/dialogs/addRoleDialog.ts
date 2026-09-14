@@ -32,14 +32,22 @@ export class DashBouncerAddRoleDialog extends LitElement {
     this._open = true;
     this.panels = params.panels;
     this.save = params.save;
+    this._valid = true;
   }
 
   _panelsToDefaultConfig(): DialogEntityConfig {
     return { panels: {} };
   }
 
+  private _handleKeyDown(ev: KeyboardEvent) {
+    if (ev.key === "Enter") {
+      ev.preventDefault();
+      this._configureRole();
+    }
+  }
+
   _configureRole() {
-    const role = this._input.value;
+    const role = this._input.value ?? "";
     if (role.length == 0) {
       this._valid = false;
       return;
@@ -89,10 +97,12 @@ export class DashBouncerAddRoleDialog extends LitElement {
         <div class="container">
           <ha-input
             id="role"
+            autofocus
             .label=${"Role name"}
             .invalid=${!this._valid}
             validation-message=${"Non empty name required"}
             @change=${this._onChange}
+            @keydown=${this._handleKeyDown}
           ></ha-input>
           <ha-button @click=${this._configureRole}> Next </ha-button>
         </div>
