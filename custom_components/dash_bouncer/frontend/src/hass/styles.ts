@@ -6,6 +6,7 @@ const baseStyles = css`
     --dashb-header-font-size: calc(20px * var(--dashb-font-size-scale));
     --dashb-body-header-font-size: calc(24px * var(--dashb-font-size-scale));
     --dashb-body-header-opacity: 0.87;
+    --dashb-error-color: #db4437;
   }
 `;
 
@@ -29,6 +30,7 @@ const lightStyles = css`
     --dashb-dialog-header-line: #f0f0f0;
 
     --dashb-block-warning-color: #ffe000;
+    --dashb-block-warning-text-color: #594f01;
   }
 `;
 
@@ -52,6 +54,7 @@ const darkStyles = css`
     --dashb-dialog-header-line: #282828;
 
     --dashb-block-warning-color: #9d8e23;
+    --dashb-block-warning-text-color: #594f01;
   }
 `;
 

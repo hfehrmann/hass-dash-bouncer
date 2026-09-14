@@ -13,6 +13,7 @@ export default {
     file: "../www/bundle.js",
     format: "iife",
     name: "DashBouncer",
+    inlineDynamicImports: true,
   },
   watch: {
     clearScreen: false,

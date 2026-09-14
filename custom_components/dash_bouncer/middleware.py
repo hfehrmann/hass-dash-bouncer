@@ -1,8 +1,8 @@
 """Define backend middlewares."""
 import logging
-from collections.abc import Callable, Coroutine
+from collections.abc import Callable, Coroutine, Sequence
 from functools import wraps
-from typing import Any, cast
+from typing import Any, NamedTuple, cast
 
 from homeassistant.components import websocket_api
 from homeassistant.components.frontend.storage import SystemStore, with_system_store
@@ -10,89 +10,138 @@ from homeassistant.components.websocket_api.connection import ActiveConnection
 from homeassistant.components.websocket_api.const import DOMAIN as WS_DOMAIN
 from homeassistant.core import HomeAssistant, callback
 
-from .config import BounceOption, Config
+from .config import BounceOption, Config, UserConfig
 from .const import DEFAULT_PANEL, DOMAIN, PERMANENT_PANELS
 from .util import get_system_default_panel
 
 _LOGGER = logging.getLogger(__name__)
 
+class _RolePolicy(NamedTuple):
+    """Holds role policies. Convenience typing only."""
+
+    allowed: Sequence[str]
+    blocked: Sequence[str]
+
+class _DashBouncerFilterPanelActiveConnection:
+    """Wrapper for connection that filer restricted panels."""
+
+    __slots__ = [
+        "hass",
+        "original_connection",
+        "store",
+    ]
+
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        connection: ActiveConnection,
+        store: SystemStore,
+    ) -> None:
+        self.hass = hass
+        self.original_connection = connection
+        self.store = store
+
+    def __getattr__(self, name: str): # noqa: ANN204
+        return getattr(self.original_connection, name)
+
+    def _build_role_policy_for_user(
+        self,
+        config: Config,
+        user_config: UserConfig
+    ) -> _RolePolicy:
+        def role_exist(x: str) -> bool:
+            return x in role_allowed or x in role_blocked
+
+        role_allowed = set()
+        role_blocked = set()
+        role_map = config.roles
+        for role in user_config.roles:
+            role_config = role_map.get(role, None)
+            if role_config is None:
+                continue
+            for allowed in role_config.allowed:
+                if not role_exist(allowed):
+                    role_allowed.add(allowed)
+                    continue
+            for blocked in role_config.blocked:
+                if not role_exist(blocked):
+                    role_blocked.add(blocked)
+                    continue
+        return _RolePolicy(role_allowed, role_blocked)
+
+    def _evaluate_policies(
+        self,
+        config: Config,
+        user_config: UserConfig,
+        panels: dict[str, Any]
+    ) -> dict[str, Any]:
+        default_bounce = user_config.default_bounce
+
+        role_policy = self._build_role_policy_for_user(config, user_config)
+        role_allowed = role_policy.allowed
+        role_blocked = role_policy.blocked
+
+        result = {} if default_bounce == BounceOption.BLOCK else panels.copy()
+        for key, value in panels.items():
+            # Try to assign role value
+            if key in role_allowed:
+                result[key] = value
+            elif key in role_blocked:
+                result.pop(key, None)
+
+            # User value takes precedence
+            if key in user_config.allowed:
+                result[key] = value
+            elif key in user_config.blocked:
+                result.pop(key, None)
+        return result
+
+    def send_message(self, data: dict[str, Any]) -> None:
+        user = self.original_connection.user
+        config = cast("Config | None", self.hass.data.get(DOMAIN))
+
+        if config is None:
+            return self.original_connection.send_message(data)
+
+        user_config = config.users.get(user.id)
+        if user_config is None:
+            return self.original_connection.send_message(data)
+
+
+        panels = data["result"]
+        result = self._evaluate_policies(config, user_config, panels)
+
+        for panel_key in PERMANENT_PANELS:
+            if panel_key in panels:
+                result[panel_key] = panels[panel_key]
+
+        if user.is_owner:
+            result["dash_bouncer"] = panels["dash_bouncer"]
+
+        default_panel = get_system_default_panel(self.store)
+
+        # If the default panel is blocked, it can cause issues when
+        # managing the dashboards from the system setting.
+        # Defaulting to send back the 'lovelace' panel if blocked
+        # only to the owner of the instance.
+        # Depening on the sytem config, this might show the default
+        # panel two times in the sidebar
+        if default_panel is not None:
+            if DEFAULT_PANEL not in result and user.is_owner:
+                fake_default_panel = panels[default_panel].copy()
+                fake_default_panel["default_visible"] = False
+                result[DEFAULT_PANEL] = fake_default_panel
+            if default_panel not in result:
+                result[default_panel] = panels[default_panel]
+        else:
+            result[DEFAULT_PANEL] = panels[DEFAULT_PANEL]
+
+        data["result"] = result
+        return self.original_connection.send_message(data)
+
 
 def patch_panel_list_ws(hass: HomeAssistant) -> None:
     """Set middleware for 'get_panels' WS endpoint."""
-
-    class DashBouncerFilterPanelActiveConnection:
-        """Wrapper for connection that filer restricted panels."""
-
-        __slots__ = [
-            "hass",
-            "original_connection",
-            "store",
-        ]
-
-        def __init__(
-            self,
-            hass: HomeAssistant,
-            connection: ActiveConnection,
-            store: SystemStore,
-        ) -> None:
-            self.hass = hass
-            self.original_connection = connection
-            self.store = store
-
-        def __getattr__(self, name: str): # noqa: ANN204
-            return getattr(self.original_connection, name)
-
-        def send_message(self, data: dict[str, Any]) -> None:
-            user = self.original_connection.user
-            config = cast("Config | None", self.hass.data.get(DOMAIN))
-
-            if config is None:
-                return self.original_connection.send_message(data)
-
-            user_config = config.users.get(user.id)
-            if user_config is None:
-                return self.original_connection.send_message(data)
-
-
-            panels = data["result"]
-            default_bounce = user_config.default_bounce
-
-            result = {} if default_bounce == BounceOption.BLOCK else panels.copy()
-
-            for key, value in panels.items():
-                if key in user_config.allowed:
-                    result[key] = value
-                elif key in user_config.blocked:
-                    result.pop(key, None)
-
-            for panel_key in PERMANENT_PANELS:
-                if panel_key in panels:
-                    result[panel_key] = panels[panel_key]
-
-            if user.is_owner:
-                result["dash_bouncer"] = panels["dash_bouncer"]
-
-            default_panel = get_system_default_panel(self.store)
-
-            # If the default panel is blocked, it can cause issues when
-            # managing the dashboards from the system setting.
-            # Defaulting to send back the 'lovelace' panel if blocked
-            # only to the owner of the instance.
-            # Depening on the sytem config, this might show the default
-            # panel two times in the sidebar
-            if default_panel is not None:
-                if DEFAULT_PANEL not in result and user.is_owner:
-                    fake_default_panel = panels[default_panel].copy()
-                    fake_default_panel["default_visible"] = False
-                    result[DEFAULT_PANEL] = fake_default_panel
-                if default_panel not in result:
-                    result[default_panel] = panels[default_panel]
-            else:
-                result[DEFAULT_PANEL] = panels[DEFAULT_PANEL]
-
-            data["result"] = result
-            return self.original_connection.send_message(data)
-
 
     @callback
     def dash_bouncer_websocket_get_panels(
@@ -114,7 +163,7 @@ def patch_panel_list_ws(hass: HomeAssistant) -> None:
             msg: dict[str, Any],
             store: SystemStore,
         ) -> None:
-            new_connection = DashBouncerFilterPanelActiveConnection(
+            new_connection = _DashBouncerFilterPanelActiveConnection(
                 hass,
                 connection,
                 store

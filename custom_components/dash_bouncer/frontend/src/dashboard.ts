@@ -5,11 +5,27 @@ import { Task } from "@lit/task";
 import type { HomeAssistant } from "./hass/types";
 import { styles } from "./hass/styles";
 
-import type { Person, Panel, BouncerConfig, UserConfig } from "./types";
+import type { Person } from "./types/entities";
+import type {
+  Panel,
+  DialogEntity,
+  DialogEntityConfig,
+  DialogDataSaveOp,
+  DialogDataDeleteOp,
+  RoleConfig,
+} from "./types/base";
+import type { BouncerConfig } from "./types/backend";
+import { BounceOption } from "./types/bounceOption";
 
-import { openDialog } from "./utils/helpers";
+import { openDialog, openAddRoleDialog } from "./utils/entity_dialog_helper";
 
-import { bouncerConfigToConfig } from "./utils/config_transformer";
+import {
+  configToBouncerConfig,
+  bouncerConfigToUserConfig,
+  bouncerRoleConfigToRoleConfig,
+  roleConfigToBouncerRoleConfig,
+  allRolesBouncerRoleConfigToRoleConfig,
+} from "./utils/config_transformer";
 
 @customElement("dash-bouncer-dashboard")
 export class DashBouncerDashboard extends LitElement {
@@ -38,13 +54,31 @@ export class DashBouncerDashboard extends LitElement {
     args: () => [],
   });
 
-  private _userConfig(person: Person, panels: Panel[]): UserConfig | null {
+  private _userConfig(person: Person, panels: Panel[]): DialogEntityConfig {
     const config = this.config?.users[person.user_id];
     if (!config) {
-      return null;
+      return { default: BounceOption.allow, panels: {} };
     }
 
-    return bouncerConfigToConfig(config, panels);
+    return bouncerConfigToUserConfig(config, panels);
+  }
+
+  private _allRoleConfig(panels: Panel[]): Record<string, RoleConfig> {
+    const config = this.config?.roles;
+    if (!config) {
+      return {};
+    }
+
+    return allRolesBouncerRoleConfigToRoleConfig(config, panels);
+  }
+
+  private _roleConfig(role: string, panels: Panel[]): DialogEntityConfig {
+    const config = this.config?.roles[role];
+    if (!config) {
+      return { panels: {} };
+    }
+
+    return bouncerRoleConfigToRoleConfig(config, panels);
   }
 
   private _openEditPerson(ev: MouseEvent) {
@@ -56,16 +90,115 @@ export class DashBouncerDashboard extends LitElement {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const panels: Panel[] = (ev.currentTarget as any).panels;
 
+    const title_kind = "User";
+    const entity: DialogEntity = { id: person.user_id, name: person.name };
+    const third_option = BounceOption.default;
     const config = this._userConfig(person, panels);
+    const role_bounce_map = this._allRoleConfig(panels);
+    const save = async (entity: DialogEntity, config: DialogEntityConfig) => {
+      const def = config.default ?? BounceOption.allow;
+      const panels = config.panels;
+      const roles = config.roles ?? [];
+      const bouncerUserConfig = configToBouncerConfig({
+        default: def,
+        roles,
+        panels,
+      });
+
+      return await this.hass.callApi<BouncerConfig>(
+        "POST",
+        `dash_bouncer/config/${entity.id}`,
+        { ...bouncerUserConfig },
+      );
+    };
     window.addEventListener("dash-bouncer-new-config", this._newConfig);
-    openDialog(this, { person, panels, ...(config && { config }) });
+    openDialog(this, {
+      title_kind,
+      entity,
+      panels,
+      role_bounce_map,
+      third_option,
+      config,
+      save,
+    });
   }
 
+  private _getAddRoleSaveOp(): DialogDataSaveOp {
+    return async (entity: DialogEntity, config: DialogEntityConfig) => {
+      const panels = config.panels;
+      const bouncerRoleConfig = roleConfigToBouncerRoleConfig({ panels });
+
+      return await this.hass.callApi<BouncerConfig>(
+        "POST",
+        `dash_bouncer/role/config/${entity.id}`,
+        { ...bouncerRoleConfig },
+      );
+    };
+  }
+
+  private _getRoleDeleteOp(): DialogDataDeleteOp {
+    return async (entity: DialogEntity) => {
+      return await this.hass.callApi<BouncerConfig>(
+        "DELETE",
+        `dash_bouncer/role/config/${entity.id}`,
+      );
+    };
+  }
+
+  private _openAddRole(ev: MouseEvent) {
+    if (ev.currentTarget === null) {
+      return;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const panels: Panel[] = (ev.currentTarget as any).panels;
+
+    window.addEventListener("dash-bouncer-new-config", this._newConfig);
+    const save = this._getAddRoleSaveOp();
+    openAddRoleDialog(this, { panels, save });
+  }
+
+  private _openEditRole(ev: MouseEvent) {
+    if (ev.currentTarget === null) {
+      return;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const role: string = (ev.currentTarget as any).data_role;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const panels: Panel[] = (ev.currentTarget as any).panels;
+
+    const title_kind = "Role";
+    const entity: DialogEntity = { id: role, name: role };
+    const third_option = BounceOption.skip;
+    const config = this._roleConfig(role, panels);
+    const save = this._getAddRoleSaveOp();
+    const deleteOp = this._getRoleDeleteOp();
+    window.addEventListener("dash-bouncer-new-config", this._newConfig);
+    openDialog(this, {
+      title_kind,
+      entity,
+      panels,
+      third_option,
+      config,
+      save,
+      delete: deleteOp,
+    });
+  }
+
+  // Can this fire multiple times??? test that case
   private _newConfig = (ev: CustomEvent) => {
     const { config } = ev.detail;
     this.config = { ...config };
     window.removeEventListener("dash-bouncer-new-config", this._newConfig);
   };
+
+  private _getRoles(): string[] {
+    const roles = Object.keys(this.config.roles ?? {});
+    roles.sort((a, b) =>
+      a.localeCompare(b, undefined, { sensitivity: "base" }),
+    );
+    return roles;
+  }
 
   render() {
     const darkMode = this.hass.themes.darkMode;
@@ -83,14 +216,17 @@ export class DashBouncerDashboard extends LitElement {
           </div>
 
           <div class="body">
-            <div class="body-title">DashBouncer</div>
+            <div class="body-title">Users</div>
 
             <div class="body-panel">
               <div class="intro">
-                <span> Manage dashboard access for users. </span>
+                <span>
+                  Manage dashboard access for users. You can also set roles for
+                  them.
+                </span>
               </div>
 
-              <div class="users">
+              <div class="elements">
                 <ha-card outlined>
                   <ha-list>
                     ${people.map(
@@ -106,6 +242,36 @@ export class DashBouncerDashboard extends LitElement {
                     )}
                   </ha-list>
                 </ha-card>
+              </div>
+            </div>
+          </div>
+          <div class="body">
+            <div class="body-title">Roles</div>
+
+            <div class="body-panel">
+              <div class="intro">
+                <span>Group access policies by role</span>
+              </div>
+
+              <div class="elements">
+                <ha-card outlined>
+                  <ha-list>
+                    ${this._getRoles().map(
+                      (role) => html`
+                        <ha-list-item
+                          @click=${this._openEditRole}
+                          .data_role=${role}
+                          .panels=${panels}
+                        >
+                          ${role}
+                        </ha-list-item>
+                      `,
+                    )}
+                  </ha-list>
+                </ha-card>
+                <ha-button .panels=${panels} @click=${this._openAddRole}>
+                  Add role
+                </ha-button>
               </div>
             </div>
           </div>
@@ -148,7 +314,7 @@ export class DashBouncerDashboard extends LitElement {
       }
 
       .body-panel {
-        margin-top: 36px;
+        margin-top: 18px;
         display: flex;
         flex-direction: row;
         flex-wrap: wrap;
@@ -156,15 +322,26 @@ export class DashBouncerDashboard extends LitElement {
       }
 
       .intro {
-        max-width: 300px;
+        max-width: 250px;
+        min-width: 150px;
         margin-right: 36px;
         margin-top: 12px;
+        flex: 1;
       }
 
-      .users {
+      .elements {
         max-width: 400px;
         min-width: 300px;
-        flex: 1;
+        flex: 2;
+
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 12px;
+      }
+
+      .elements ha-card {
+        align-self: stretch;
       }
     `,
   ];
