@@ -1,6 +1,7 @@
 import { LitElement, html, css } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { Task } from "@lit/task";
+import { mdiReload } from "@mdi/js";
 
 import type { HomeAssistant } from "./hass/types";
 import { styles } from "./hass/styles";
@@ -185,6 +186,15 @@ export class DashBouncerDashboard extends LitElement {
     });
   }
 
+  private async _reloadConfig() {
+    const new_config = await this.hass.callApi<BouncerConfig>(
+      "POST",
+      "dash_bouncer/reload_config",
+    );
+    this.config = { ...new_config };
+    // present toast eventually
+  }
+
   // Can this fire multiple times??? test that case
   private _newConfig = (ev: CustomEvent) => {
     const { config } = ev.detail;
@@ -213,6 +223,15 @@ export class DashBouncerDashboard extends LitElement {
               .narrow=${this.narrow}
             ></ha-menu-button>
             <span>DashBouncer</span>
+            <div class="stretch"></div>
+            <div class="reload">
+              <ha-icon-button
+                .label=${"Reload config file"}
+                .path=${mdiReload}
+                @click=${this._reloadConfig}
+              >
+              </ha-icon-button>
+            </div>
           </div>
 
           <div class="body">
@@ -298,6 +317,10 @@ export class DashBouncerDashboard extends LitElement {
       }
       .narrow .header > span {
         margin-left: 12px;
+      }
+
+      .header .stretch {
+        flex-grow: 1;
       }
 
       .body {

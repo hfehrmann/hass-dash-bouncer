@@ -14,7 +14,7 @@ from homeassistant.core import HomeAssistant
 
 from .config import Config, RoleConfig, UserConfig, integration_config_path
 from .const import DOMAIN, PERMANENT_PANELS
-from .util import get_system_default_panel
+from .util import get_system_default_panel, load_config_from_file
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -24,9 +24,7 @@ def _admin[T](
     wrapper: Callable[[T, web.Request, HomeAssistant], web.Response]
 ) -> Callable[[T, web.Request], web.Response]:
     async def check(self: T, request: web.Request, **kwargs: P.kwargs) -> web.Response:
-        hass = request.app["hass"]
         user = request["hass_user"]
-
         if not user.is_admin:
             return self.json({
                 "error": "Admin access required",
@@ -121,6 +119,34 @@ class DashBouncerConfigView(HomeAssistantView):
         hass = request.app["hass"]
         try:
             config = cast("Config | None", hass.data.get(DOMAIN))
+            return self.json(None if config is None else config.dump())
+        except Exception as e:
+            _LOGGER.exception("Error getting config")
+            return self.json({"error": str(e)}, status_code=500)
+
+        return None
+
+class DashBouncerReloadConfigView(HomeAssistantView):
+    """Endpoint for reloading the bouncer config."""
+
+    url = "/api/dash_bouncer/reload_config"
+    name = "api:dash_bouncer:relaad_config"
+    requires_auth = True
+
+    @_admin
+    async def post(self, request: web.Request) -> web.Response:
+        """Reload the config from storage."""
+        hass = request.app["hass"]
+        try:
+
+            old_config = cast("Config | None", hass.data.get(DOMAIN))
+            config = await load_config_from_file(hass)
+
+            if config is None:
+                config = old_config
+
+            hass.data[DOMAIN] = config
+
             return self.json(None if config is None else config.dump())
         except Exception as e:
             _LOGGER.exception("Error getting config")
