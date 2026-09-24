@@ -1,4 +1,4 @@
-import { LitElement, html, css } from "lit";
+import { LitElement, html, css, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { Task } from "@lit/task";
 import { mdiReload } from "@mdi/js";
@@ -58,7 +58,7 @@ export class DashBouncerDashboard extends LitElement {
   private _userConfig(person: Person, panels: Panel[]): DialogEntityConfig {
     const config = this.config?.users[person.user_id];
     if (!config) {
-      return { default: BounceOption.allow, panels: {} };
+      return { default: BounceOption.allow, panels: {}, roles: [] };
     }
 
     return bouncerConfigToUserConfig(config, panels);
@@ -203,7 +203,7 @@ export class DashBouncerDashboard extends LitElement {
   };
 
   private _getRoles(): string[] {
-    const roles = Object.keys(this.config.roles ?? {});
+    const roles = Object.keys(this.config?.roles ?? {});
     roles.sort((a, b) =>
       a.localeCompare(b, undefined, { sensitivity: "base" }),
     );
@@ -213,6 +213,7 @@ export class DashBouncerDashboard extends LitElement {
   render() {
     const darkMode = this.hass.themes.darkMode;
     const uiMode = darkMode ? "dark" : "light";
+    const roles = this._getRoles();
     return this._dataTask.render({
       pending: () => html`<hass-loading-screen></hass-loading-screen>`,
       complete: ({ people, panels }) => html`
@@ -273,21 +274,23 @@ export class DashBouncerDashboard extends LitElement {
               </div>
 
               <div class="elements">
-                <ha-card outlined>
-                  <ha-list>
-                    ${this._getRoles().map(
-                      (role) => html`
-                        <ha-list-item
-                          @click=${this._openEditRole}
-                          .data_role=${role}
-                          .panels=${panels}
-                        >
-                          ${role}
-                        </ha-list-item>
-                      `,
-                    )}
-                  </ha-list>
-                </ha-card>
+                ${roles.length > 0
+                  ? html` <ha-card outlined>
+                      <ha-list>
+                        ${roles.map(
+                          (role) => html`
+                            <ha-list-item
+                              @click=${this._openEditRole}
+                              .data_role=${role}
+                              .panels=${panels}
+                            >
+                              ${role}
+                            </ha-list-item>
+                          `,
+                        )}
+                      </ha-list>
+                    </ha-card>`
+                  : nothing}
                 <ha-button .panels=${panels} @click=${this._openAddRole}>
                   Add role
                 </ha-button>
