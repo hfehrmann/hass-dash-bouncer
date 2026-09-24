@@ -129,7 +129,7 @@ class Config:
         users = data.get("users")
         if users is None and not isinstance(users, dict):
             _LOGGER.warning("No users in config data. Allowing everyone.")
-            return None
+            users = {}
 
         users_data = {}
         user_errors = set()

@@ -39,4 +39,3 @@ async def load_config_from_file(hass: HomeAssistant) -> Config | None:
         return Config.loads(config_data)
 
     return await loop.run_in_executor(None, load)
-
