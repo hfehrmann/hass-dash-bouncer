@@ -320,9 +320,14 @@ export class DashBouncerEntityDialog extends LitElement {
               },
             )
           : nothing}
-        ${userPanels.length > 0 && this.config.roles
-          ? html`<hr class="intertable" />`
+        ${rolePanels.length > 0
+          ? html`<div class="disclaimer">
+              Bouncer policies when evaluating roles from top to bottom
+            </div>`
           : nothing}
+
+        <hr class="intertable" />
+
         ${this.config.default != null
           ? html`<div class="configs default">
               <div class="title">Default bounce</div>
@@ -489,7 +494,7 @@ export class DashBouncerEntityDialog extends LitElement {
 
       .disclaimer {
         font-size: small;
-        margin-top: 4px;
+        margin: 4px 4px 0;
       }
 
       .bounce_actions {
