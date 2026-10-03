@@ -9,7 +9,6 @@ import yaml
 from aiohttp import web
 from homeassistant.components.frontend import DATA_PANELS, async_system_store
 from homeassistant.components.http import HomeAssistantView
-from homeassistant.components.person.const import DOMAIN as PERSON_DOMAIN
 from homeassistant.core import HomeAssistant
 
 from .config import Config, RoleConfig, UserConfig, integration_config_path
@@ -97,9 +96,16 @@ class DashBouncerUsersView(HomeAssistantView):
         """Get the panels."""
         hass = request.app["hass"]
         try:
-            _, storage, _ = hass.data[PERSON_DOMAIN]
-
-            return self.json(storage.async_items())
+            users = await hass.auth.async_get_users()
+            user_data = [
+                {
+                    "user_id": user.id,
+                    "name": user.name,
+                }
+                for user in users
+                if len(user.credentials) > 0
+            ]
+            return self.json(user_data)
         except Exception as e:
             _LOGGER.exception("Error getting users")
             return self.json({"error": str(e)}, status_code=500)
