@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - 'v*.*.*' # Triggers the workflow when a tag starting with 'v' is pushed
+      - '*' # Trigger for all tags
 env:
   NODE_VERSION: 18
 
