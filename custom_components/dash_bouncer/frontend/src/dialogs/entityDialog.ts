@@ -325,9 +325,7 @@ export class DashBouncerEntityDialog extends LitElement {
               Bouncer policies when evaluating roles from top to bottom
             </div>`
           : nothing}
-
-        <hr class="intertable" />
-
+        ${this.config.roles != null ? html`<hr class="intertable" />` : nothing}
         ${this.config.default != null
           ? html`<div class="configs default">
               <div class="title">Default bounce</div>
