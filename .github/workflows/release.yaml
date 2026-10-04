@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - 'v*.*.*' # Triggers the workflow when a tag starting with 'v' is pushed
+      - '*' # Trigger for all tags
 env:
   NODE_VERSION: 18
 
@@ -43,7 +43,7 @@ jobs:
       - name: Upload Release Asset
         uses: ncipollo/release-action@v1
         with:
-          name: Release ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
           draft: true
           artifacts: "./hass_dash_bouncer.zip"
 
