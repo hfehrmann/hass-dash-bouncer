@@ -6,7 +6,8 @@ Custom integration for managing dashboard access for users.
 
 ## Demo
 
-![dash bouncer demo usage](/docs/media/dash_bouncer_demo.gif)
+https://github.com/user-attachments/assets/ba953d37-db30-45a4-a2dd-4d503f7a2269
+
 > [!Note]
 > You need to refresh the web app, so the config takes place.
 
