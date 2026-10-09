@@ -175,7 +175,7 @@ class DashBouncerUserConfigView(HomeAssistantView, DashBouncerConfigSaveableMixi
             config = cast("Config | None", hass.data.get(DOMAIN))
 
             if config is None:
-                config = Config({})
+                config = Config(users={}, roles={})
 
             new_config = Config(users=config.users.copy(), roles=config.roles.copy())
             data = await request.json()
@@ -203,7 +203,7 @@ class DashBouncerRoleConfigView(HomeAssistantView, DashBouncerConfigSaveableMixi
             config = cast("Config | None", hass.data.get(DOMAIN))
 
             if config is None:
-                config = Config({})
+                config = Config(users={}, roles={})
 
             new_config = Config(users=config.users.copy(), roles=config.roles.copy())
             data = await request.json()
@@ -224,7 +224,7 @@ class DashBouncerRoleConfigView(HomeAssistantView, DashBouncerConfigSaveableMixi
             config = cast("Config | None", hass.data.get(DOMAIN))
 
             if config is None:
-                config = Config({})
+                config = Config(users={}, roles={})
 
             new_config = Config(users=config.users.copy(), roles=config.roles.copy())
             new_config.roles.pop(role_id, None)
